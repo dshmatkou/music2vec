@@ -1,0 +1,3 @@
+SAMPLING_RATE = 22050  # half of standard 44.1 kHz
+WINDOW_SIZE = SAMPLING_RATE // 10
+N_COEFF = 50
