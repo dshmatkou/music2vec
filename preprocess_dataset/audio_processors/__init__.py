@@ -1,4 +1,4 @@
-from preprocess_dataset.audio_processors.mfcc import process_file
+from audio_processors.mfcc import process_file
 
 PROCESSORS = {
     'mfcc': process_file,

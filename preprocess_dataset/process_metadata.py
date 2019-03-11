@@ -1,5 +1,8 @@
+import logging
 import os
 import pandas
+
+logger = logging.getLogger(__name__)
 
 
 SET_SUBSET = ('set', 'subset')
@@ -65,10 +68,13 @@ def extract_echonest_metadata(data_dir, using_tracks):
 
 
 def process_metadata(data_dir, dataset_size, enable_echonest=False):
+    logger.info('Loading metadata from tracks.csv')
     tracks_metadata = extract_track_metadata(data_dir, dataset_size)
     if enable_echonest:
+        logger.info('Loading metadata from raw_echonest.csv')
         echonest_metadata = extract_echonest_metadata(data_dir, tracks_metadata)
         tracks_metadata = tracks_metadata[tracks_metadata.index.isin(echonest_metadata.index)]
+        logger.info('Merging rows')
         tracks_metadata = tracks_metadata.merge(
             echonest_metadata,
             left_index=True, right_index=True
