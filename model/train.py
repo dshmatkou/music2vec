@@ -36,8 +36,8 @@ def create_mapping(df, extractor):
 
 
 def to_categorical(mapping, values):
-    nv = [mapping[value] for value in values]
-    cat = tf.keras.utils.to_categorical(nv, len(mapping))
+    nv = {mapping[value] for value in values}
+    cat = [1 if category in nv else 0 for category in range(len(mapping))]
     return cat
 
 
@@ -47,33 +47,34 @@ def process_rows(df, genres_mapping, locations_mapping):
     labels = collections.defaultdict(list)
 
     for idx, row in df.iterrows():
-        features['features'].append(numpy.array(json.loads(row['features'])))
+        feature = numpy.array(json.loads(row['features']))
+        features['feature'].append(feature.reshape(feature.shape + (1,)))
         labels['date_released'].append(
-            parse(row['date_released']).year
+            [parse(row['date_released']).year]
             if isinstance(row['date_released'], six.string_types)
-            else 0.0
+            else [0.0]
         )
         labels['genres_all'].append(to_categorical(genres_mapping, genres_extractor(row)))
         labels['genres'].append(
             to_categorical(genres_mapping, genres_extractor(row, 'genres'))
         )
-        labels['artist_location'].append(
-            to_categorical(locations_mapping, location_extractor(row))
-        )
 
         if 'acousticness' in row:
-            labels['acousticness'].append(row['acousticness'])
-            labels['danceability'].append(row['danceability'])
-            labels['energy'].append(row['energy'])
-            labels['instrumentalness'].append(row['instrumentalness'])
-            labels['speechiness'].append(row['speechiness'])
-            labels['valence'].append(row['valence'])
+            labels['acousticness'].append([row['acousticness']])
+            labels['danceability'].append([row['danceability']])
+            labels['energy'].append([row['energy']])
+            labels['instrumentalness'].append([row['instrumentalness']])
+            labels['speechiness'].append([row['speechiness']])
+            labels['valence'].append([row['valence']])
+            labels['artist_location'].append(
+                to_categorical(locations_mapping, location_extractor(row))
+            )
 
     for key, value in features.items():
-        features[key] = numpy.array(value)
+        features[key] = numpy.array(value, dtype=numpy.float32)
 
-    for key, value in labels.values():
-        labels[key] = numpy.array(value)
+    for key, value in labels.items():
+        labels[key] = numpy.array(value, dtype=numpy.float32)
 
     return features, labels
 
@@ -105,12 +106,15 @@ def main(parser):
     x_train, y_train, x_test, y_test = prepare_dataset(args.dataset)
 
     logger.info('Train')
-    estimator = tf.estimator.Estimator(model_fn)
+    estimator = tf.estimator.Estimator(
+        model_fn=model_fn,
+        model_dir='/tmp/music2vec_models'
+    )
     input_fn = tf.estimator.inputs.numpy_input_fn(
         x=x_train, y=y_train,
         batch_size=100, num_epochs=None, shuffle=True
     )
-    estimator.train(input_fn, steps=10)
+    estimator.train(input_fn, steps=100)
 
     logger.info('Test')
     input_fn = tf.estimator.inputs.numpy_input_fn(
