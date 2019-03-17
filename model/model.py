@@ -34,7 +34,11 @@ def build_kernel_model(feature):
 
 def build_simple_multilabel_loss(kernel_model, labels, label_name):
     label = labels[label_name]
-    pred = tf.layers.dense(inputs=kernel_model, units=label.shape[1])
+    pred = tf.layers.dense(
+        inputs=kernel_model,
+        units=label.shape[1],
+        activation=tf.nn.relu,
+    )
     loss = tf.nn.sigmoid_cross_entropy_with_logits(
         labels=label,
         logits=pred,
@@ -45,12 +49,16 @@ def build_simple_multilabel_loss(kernel_model, labels, label_name):
         labels=tf.round(tf.nn.sigmoid(label)),
         predictions=pred,
     )
-    return loss, acc
+    summaries = [
+        tf.summary.scalar('multilabel_loss/{}'.format(label_name), loss),
+        tf.summary.scalar('multilabel_accuracy/{}'.format(label_name), acc[0]),
+    ]
+    return loss, acc[0], summaries
 
 
 def build_simple_logit_loss(kernel_model, labels, label_name):
     label = labels[label_name]
-    pred = tf.layers.dense(inputs=kernel_model, units=1)
+    pred = tf.layers.dense(inputs=kernel_model, units=1, activation=None)
     loss = tf.losses.mean_squared_error(
         labels=label,
         predictions=pred,
@@ -59,12 +67,20 @@ def build_simple_logit_loss(kernel_model, labels, label_name):
         labels=label,
         predictions=pred,
     )
-    return loss, acc
+    summaries = [
+        tf.summary.scalar('logit_loss/{}'.format(label_name), loss),
+        tf.summary.scalar('logit_accuracy/{}'.format(label_name), acc[0]),
+    ]
+    return loss, acc[0], summaries
 
 
 def build_simple_cat_loss(kernel_model, labels, label_name):
     label = labels[label_name]
-    pred = tf.layers.dense(inputs=kernel_model, units=label.shape[1])
+    pred = tf.layers.dense(
+        inputs=kernel_model,
+        units=label.shape[1],
+        activation=tf.nn.relu,
+    )
     loss = tf.losses.softmax_cross_entropy(
         onehot_labels=label,
         logits=pred,
@@ -73,7 +89,11 @@ def build_simple_cat_loss(kernel_model, labels, label_name):
         labels=tf.argmax(label, axis=1),
         predictions=tf.argmax(pred, axis=1),
     )
-    return loss, acc
+    summaries = [
+        tf.summary.scalar('category_loss/{}'.format(label_name), loss),
+        tf.summary.scalar('category_accuracy/{}'.format(label_name), acc[0]),
+    ]
+    return loss, acc[0], summaries
 
 
 def model_fn(features, labels, mode):
@@ -88,59 +108,79 @@ def model_fn(features, labels, mode):
     with tf.variable_scope('losses'):
         losses = []
         accs = []
+        summaries = []
         if 'genres_all' in labels:
-            loss, acc = build_simple_multilabel_loss(model, labels, 'genres_all')
+            loss, acc, label_summaries = build_simple_multilabel_loss(model, labels, 'genres_all')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'genres' in labels:
-            loss, acc = build_simple_multilabel_loss(model, labels, 'genres')
+            loss, acc, label_summaries = build_simple_multilabel_loss(model, labels, 'genres')
             losses.append(loss)
             accs.append(acc)
-        if 'date_released' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'date_released')
-            losses.append(loss)
-            accs.append(acc)
+            summaries.extend(label_summaries)
+        # if 'date_released' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'date_released')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
         if 'acousticness' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'acousticness')
+            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'acousticness')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'danceability' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'danceability')
+            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'danceability')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'energy' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'energy')
+            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'energy')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'instrumentalness' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'instrumentalness')
+            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'instrumentalness')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'speechiness' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'speechiness')
+            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'speechiness')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'valence' in labels:
-            loss, acc = build_simple_logit_loss(model, labels, 'valence')
+            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'valence')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
         if 'artist_location' in labels:
-            loss, acc = build_simple_cat_loss(model, labels, 'artist_location')
+            loss, acc, label_summaries = build_simple_cat_loss(model, labels, 'artist_location')
             losses.append(loss)
             accs.append(acc)
+            summaries.extend(label_summaries)
 
     with tf.variable_scope('optimizer'):
-        general_loss = sum(losses)
+        general_loss = tf.math.reduce_sum(losses)
         if mode == tf.estimator.ModeKeys.TRAIN:
-            optimizer = tf.train.AdamOptimizer(learning_rate=0.1)
-            train_op = optimizer.minimize(
-                loss=general_loss,
-                global_step=tf.train.get_global_step(),
+            optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+            training_ops = [
+                optimizer.minimize(
+                    loss=loss,
+                    global_step=tf.train.get_global_step(),
+                )
+                for loss in losses
+            ]
+            summary_hook = tf.train.SummarySaverHook(
+                1,
+                output_dir='/tmp/music2vec_summary',
+                summary_op=tf.summary.merge(summaries)
             )
             return tf.estimator.EstimatorSpec(
                 mode=mode,
                 loss=general_loss,
-                train_op=train_op,
+                train_op=tf.group(*training_ops),
+                training_hooks=[summary_hook],
             )
 
     with tf.variable_scope('accuracy'):

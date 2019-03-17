@@ -52,7 +52,7 @@ def process_rows(df, genres_mapping, locations_mapping):
         labels['date_released'].append(
             [parse(row['date_released']).year]
             if isinstance(row['date_released'], six.string_types)
-            else [0.0]
+            else [2000]
         )
         labels['genres_all'].append(to_categorical(genres_mapping, genres_extractor(row)))
         labels['genres'].append(
@@ -108,13 +108,16 @@ def main(parser):
     logger.info('Train')
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
-        model_dir='/tmp/music2vec_models'
+        config=tf.estimator.RunConfig(
+            save_checkpoints_steps=20,
+            model_dir='/tmp/music2vec_models',
+        )
     )
     input_fn = tf.estimator.inputs.numpy_input_fn(
         x=x_train, y=y_train,
         batch_size=100, num_epochs=None, shuffle=True
     )
-    estimator.train(input_fn, steps=100)
+    estimator.train(input_fn, steps=5)
 
     logger.info('Test')
     input_fn = tf.estimator.inputs.numpy_input_fn(
