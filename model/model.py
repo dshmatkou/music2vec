@@ -124,46 +124,56 @@ def model_fn(features, labels, mode):
         #     losses.append(loss)
         #     accs.append(acc)
         #     summaries.extend(label_summaries)
-        if 'acousticness' in labels:
-            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'acousticness')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
-        if 'danceability' in labels:
-            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'danceability')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
-        if 'energy' in labels:
-            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'energy')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
-        if 'instrumentalness' in labels:
-            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'instrumentalness')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
-        if 'speechiness' in labels:
-            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'speechiness')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
-        if 'valence' in labels:
-            loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'valence')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
-        if 'artist_location' in labels:
-            loss, acc, label_summaries = build_simple_cat_loss(model, labels, 'artist_location')
-            losses.append(loss)
-            accs.append(acc)
-            summaries.extend(label_summaries)
+        # if 'acousticness' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'acousticness')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
+        # if 'danceability' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'danceability')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
+        # if 'energy' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'energy')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
+        # if 'instrumentalness' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'instrumentalness')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
+        # if 'speechiness' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'speechiness')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
+        # if 'valence' in labels:
+        #     loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'valence')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
+        # if 'artist_location' in labels:
+        #     loss, acc, label_summaries = build_simple_cat_loss(model, labels, 'artist_location')
+        #     losses.append(loss)
+        #     accs.append(acc)
+        #     summaries.extend(label_summaries)
 
     with tf.variable_scope('optimizer'):
         general_loss = tf.math.reduce_sum(losses)
+        summaries.append(
+            tf.summary.scalar('total_loss', general_loss)
+        )
         if mode == tf.estimator.ModeKeys.TRAIN:
-            optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+            optimizer = tf.train.AdamOptimizer(
+                learning_rate=0.01,
+                epsilon=0.01,
+            )
+            optimizer = tf.contrib.estimator.clip_gradients_by_norm(
+                optimizer,
+                5,
+            )
             training_ops = [
                 optimizer.minimize(
                     loss=loss,

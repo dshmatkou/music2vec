@@ -15,9 +15,9 @@ def extract_cc(audio_series, window_size, filter_basis):
         audio_series, window_size,
         window='hamming', dtype=numpy.float32
     )
-    filtered = numpy.dot(filter_basis, windowed)
-    energy = librosa.core.power_to_db(filtered)
-    cepstral_coeff = scipy.fftpack.dct(energy, norm='ortho')[:N_COEFF]
+    energy = librosa.core.power_to_db(windowed)
+    filtered = numpy.dot(filter_basis, energy)
+    cepstral_coeff = scipy.fftpack.dct(filtered, norm='ortho')[:N_COEFF]
     return cepstral_coeff
 
 
