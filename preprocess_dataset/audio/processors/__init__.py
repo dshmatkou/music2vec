@@ -1,4 +1,4 @@
-from audio_processors.mfcc import process_file
+from audio.processors.mfcc import process_file
 
 PROCESSORS = {
     'mfcc': process_file,

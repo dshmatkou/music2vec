@@ -3,7 +3,7 @@ import librosa.display
 import numpy
 import scipy.fftpack
 
-from audio_processors.consts import (
+from audio.processors.consts import (
     N_COEFF,
     WINDOW_SIZE,
     SAMPLING_RATE,
@@ -30,4 +30,7 @@ def extract_mfcc(audio_series, sampling_rate):
 def process_file(filename):
     audio_series, sampling_rate = librosa.load(filename, duration=25, sr=SAMPLING_RATE)
     mfcc = extract_mfcc(audio_series, sampling_rate)
+    # normalization
+    xmax, xmin = mfcc.max(), mfcc.min()
+    mfcc = (mfcc - xmin) / (xmax - xmin)
     return mfcc

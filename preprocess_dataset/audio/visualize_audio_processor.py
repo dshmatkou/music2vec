@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-from audio_processors import get_processor, PROCESSORS
+from processors import get_processor, PROCESSORS
 
 
 def visualize(matrix):
