@@ -2,7 +2,7 @@ import argparse
 import logging
 import sys
 import tensorflow as tf
-from model import model_fn
+from model.model import model_fn
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
@@ -66,11 +66,10 @@ def parse_args(parser):
     return args
 
 
-def main(parser):
-    args = parse_args(parser)
+def main(dataset):
 
     logger.info('Start')
-    train, test = prepare_dataset(args.dataset)
+    train, test = prepare_dataset(dataset)
 
     logger.info('Train')
     estimator = tf.estimator.Estimator(

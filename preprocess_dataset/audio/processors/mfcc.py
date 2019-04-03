@@ -3,7 +3,7 @@ import librosa.display
 import numpy
 import scipy.fftpack
 
-from audio.processors.consts import (
+from preprocess_dataset.audio.processors.consts import (
     N_COEFF,
     WINDOW_SIZE,
     SAMPLING_RATE,

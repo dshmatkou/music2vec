@@ -1,7 +1,7 @@
 import logging
 import os
 import tensorflow as tf
-from audio.processors import get_processor
+from preprocess_dataset.audio.processors import get_processor
 
 logger = logging.getLogger(__name__)
 

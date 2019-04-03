@@ -1,7 +1,7 @@
 import logging
 import os
-from metadata.processors.tracks import extract_track_metadata
-from metadata.processors.echonest import extract_echonest_metadata
+from preprocess_dataset.metadata.processors.tracks import extract_track_metadata
+from preprocess_dataset.metadata.processors.echonest import extract_echonest_metadata
 
 logger = logging.getLogger(__name__)
 

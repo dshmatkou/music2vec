@@ -3,7 +3,7 @@ import logging
 import pandas
 import six
 from dateutil.parser import parse
-from metadata.processors.base import CategoricalColumnProcessor
+from preprocess_dataset.metadata.processors.base import CategoricalColumnProcessor
 
 logger = logging.getLogger(__name__)
 

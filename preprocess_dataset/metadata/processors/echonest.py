@@ -1,7 +1,7 @@
 import logging
 import pandas
 import tensorflow as tf
-from metadata.processors.base import CategoricalColumnProcessor
+from preprocess_dataset.metadata.processors.base import CategoricalColumnProcessor
 
 logger = logging.getLogger(__name__)
 
