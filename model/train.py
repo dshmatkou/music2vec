@@ -1,59 +1,20 @@
-import argparse
 import logging
 import sys
 import tensorflow as tf
+from common.records.record import Record
 from model.model import model_fn
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
-def extract_fn(data_record):
-    features = {
-        'release_decade': tf.FixedLenFeature([2], tf.int64),
-        'release_decade_raw': tf.FixedLenFeature([], tf.string, default_value=''),
-        'genres_top': tf.FixedLenFeature([], tf.int64),
-        'genres_all': tf.FixedLenFeature([], tf.int64),
-        'acousticness': tf.FixedLenFeature([1], tf.float32),
-        'danceability': tf.FixedLenFeature([1], tf.float32),
-        'energy': tf.FixedLenFeature([1], tf.float32),
-        'instrumentalness': tf.FixedLenFeature([1], tf.float32),
-        'speechiness': tf.FixedLenFeature([1], tf.float32),
-        'happiness': tf.FixedLenFeature([1], tf.float32),
-        'artist_location': tf.FixedLenFeature([2], tf.int64),
-        'artist_location_raw': tf.FixedLenFeature([1], tf.string, default_value=''),
-        'feature_shape': tf.FixedLenFeature([2], tf.int64),
-        'feature': tf.VarLenFeature(tf.float32),
-    }
-    sample = tf.parse_single_example(data_record, features)
-    import ipdb; ipdb.set_trace()
-    sample['feature'] = tf.reshape(
-        sample['feature'],
-        (
-            tf.cast(sample['feature_shape'][0], tf.int64),
-            tf.cast(sample['feature_shape'][1], tf.int64),
-        ),
-    )
-    return (
-        {'feature': sample['feature']},
-        {
-            'release_decade': sample['release_decade'],
-            'genres_top': sample['genres_top'],
-            'genres_all': sample['genres_all'],
-            'acousticness': sample['acousticness'],
-            'danceability': sample['danceability'],
-            'energy': sample['energy'],
-            'instrumentalness': sample['instrumentalness'],
-            'speechiness': sample['speechiness'],
-            'happiness': sample['happiness'],
-            'artist_location': sample['artist_location'],
-        },
-    )
-
-
 def prepare_dataset(ds_path):
     dataset = tf.data.TFRecordDataset([ds_path])
-    dataset = dataset.map(extract_fn).shuffle()
+    dataset = dataset.map(
+        Record.deserialize
+    ).map(
+        Record.decompose_on_feature_labels
+    ).shuffle()
     train = dataset.take(500)
     test = dataset.skip(500)
 
@@ -84,8 +45,3 @@ def main(dataset):
     logger.info('Test')
     e = estimator.evaluate(train.batch(100))
     print("Testing Accuracy:", e['accuracy'])
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    main(parser)

@@ -1,4 +1,5 @@
-import argparse
+
+
 import logging
 import os
 import sys
@@ -67,7 +68,6 @@ def main(
 
             logger.info('Start writing data')
             for item_id, features in batch.items():
-                features.pop('subset', None)
                 record = tf.train.Features(feature=features)
                 example = tf.train.Example(features=record)
                 tfwriter.write(example.SerializeToString())
@@ -76,8 +76,3 @@ def main(
             break
 
     logger.info('Finished')
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    main(parser)

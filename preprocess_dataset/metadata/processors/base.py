@@ -3,8 +3,7 @@ import tensorflow as tf
 
 def to_categorical(mapping, values):
     nv = {mapping[value] for value in values}
-    cat = [1 if category in nv else 0 for category in range(len(mapping))]
-    return cat
+    return len(mapping), list(nv)
 
 
 class CategoricalColumnProcessor(object):
@@ -43,15 +42,9 @@ class CategoricalColumnProcessor(object):
         values, hr_value = self._process_raw_column(
             self.df.ix[item_id][self.DF_COLUMN]
         )
-        classes = to_categorical(self._mapping, values)
 
-        result[self.NAME] = tf.train.Feature(
-            float_list=tf.train.FloatList(value=classes)
-        )
-
+        result[self.NAME] = to_categorical(self._mapping, values)
         if hr_value is not None:
-            result[self.NAME + '_raw'] = tf.train.Feature(
-                bytes_list=tf.train.BytesList(value=[hr_value.encode()])
-            )
+            result[self.NAME + '_raw'] = hr_value.encode()
 
         return result

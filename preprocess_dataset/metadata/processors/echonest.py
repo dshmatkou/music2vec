@@ -45,9 +45,7 @@ def extract_echonest_metadata(dataset_fname, using_tracks):
 
         for df_column, column in ECHONEST_COLUMNS.items():
             col_value = row[df_column]
-            dataset[index][column] = tf.train.Feature(
-                float_list=tf.train.FloatList(value=[float(col_value)])
-            )
+            dataset[index][column] = float(col_value)
 
         dataset[index].update(
             artist_location_column_processor.process_item(index)

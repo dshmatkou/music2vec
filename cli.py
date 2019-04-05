@@ -33,9 +33,7 @@ def preprocess_dataset(
 @cli.command('train', help='Train music2vec model')
 @click.option('-d', '--dataset', help='Path to dataset')
 def train(dataset):
-    tr(
-
-    )
+    tr(dataset)
 
 
 if __name__ == '__main__':
