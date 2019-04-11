@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 
 def _bytes_feature(value):
@@ -22,30 +23,156 @@ def _int64_feature(value):
 
 class RecordColumn(object):
 
-    TYPE = None
-    TRANSFORMERS = {
-        'string': _bytes_feature,
-        'int': _int64_feature,
-        'float': _float_feature,
-    }
-
     def __init__(self):
         self.name = None
-        self.value = None
 
-    def process_raw_value(self, value):
-        return bytes(value)
-
-    def __set__(self, instance, value):
-        serializer = self.TRANSFORMERS.get(self.TYPE, _bytes_feature)
-        self.value = serializer(self.process_raw_value(value))
+        self.raw = None
+        self.tensor = None
+        self.serialized = None
 
     @property
     def descriptor(self):
-        return tf.FixedLenFeature([], tf.string, default_value='')
+        return None
 
-    def parse(self, item):
-        return item.numpy()
+    def process_raw(self, value):
+        raise NotImplemented
+
+    def process_record(self, record):
+        raise NotImplemented
+
+    def get_seralized(self):
+        if not self.serialized:
+            raise RuntimeError('Value has not been serialized')
+        return self.serialized
+
+    def get_tensor(self):
+        if not self.tensor:
+            raise RuntimeError('Value has not been deserialized')
+        return self.tensor
+
+
+class BytesScalarColumn(RecordColumn):
+
+    @property
+    def descriptor(self):
+        return {
+            self.name: tf.FixedLenFeature([], tf.string, default_value='')
+        }
+
+    def process_raw(self, value):
+        self.raw = bytes(value)
+        self.serialized = {
+            self.name: _bytes_feature(self.raw)
+        }
+
+    def process_record(self, record):
+        self.serialized = {
+            self.name: record[self.name]
+        }
+        self.tensor = record[self.name]
+
+
+class FloatScalarColumn(RecordColumn):
+
+    def __init__(self):
+        super().__init__()
+
+    @property
+    def descriptor(self):
+        return {
+            self.name: tf.FixedLenFeature([], tf.float32, default_value=0.0)
+        }
+
+    def process_raw(self, value):
+        self.raw = float(value)
+        self.serialized = {
+            self.name: _float_feature(value)
+        }
+
+    def process_record(self, record):
+        self.serialized = {
+            self.name: record[self.name]
+        }
+        self.tensor = tf.reshape(tf.cast(record[self.name], tf.float32), (1,))
+
+
+class Tensor1DColumn(RecordColumn):
+    XSHAPE = '{}_x_shape'
+
+    def __init__(self):
+        super().__init__()
+        self.x_shape = None
+
+    @property
+    def descriptor(self):
+        return {
+            self.name: tf.VarLenFeature(tf.float32),
+            self.XSHAPE.format(self.name): tf.FixedLenFeature([], tf.int64, default_value=0)
+        }
+
+    def process_raw(self, value):
+        if len(value.shape) != 1:
+            raise RuntimeError('Invalid data shape')
+
+        self.raw = value.tolist()
+        self.x_shape = len(self.raw)
+        self.serialized = {
+            self.name: _float_feature(self.raw),
+            self.XSHAPE.format(self.name): _int64_feature(self.x_shape)
+        }
+
+    def process_record(self, record):
+        x_field = self.XSHAPE.format(self.name)
+        self.serialized = {
+            self.name: record[self.name],
+            x_field: record[x_field]
+        }
+        shape = tf.parallel_stack([tf.cast(record[x_field], tf.int32)])
+        dense = tf.sparse_tensor_to_dense(record[self.name], default_value=0)
+        self.tensor = tf.reshape(dense, shape)
+
+
+class Tensor2DColumn(RecordColumn):
+    XSHAPE = '{}_x_shape'
+    YSHAPE = '{}_y_shape'
+
+    def __init__(self):
+        super().__init__()
+        self.x_shape = None
+        self.y_shape = None
+
+    @property
+    def descriptor(self):
+        return {
+            self.name: tf.VarLenFeature(tf.float32),
+            self.XSHAPE.format(self.name): tf.FixedLenFeature([], tf.int64, default_value=0),
+            self.YSHAPE.format(self.name): tf.FixedLenFeature([], tf.int64, default_value=0)
+        }
+
+    def process_raw(self, value):
+        if len(value.shape) != 2:
+            raise RuntimeError('Invalid data shape')
+
+        self.x_shape = value.shape[0]
+        self.y_shape = value.shape[1]
+        self.raw = np.reshape(value, [self.x_shape * self.y_shape]).tolist()
+        self.serialized = {
+            self.name: _float_feature(self.raw),
+            self.XSHAPE.format(self.name): _int64_feature(self.x_shape),
+            self.YSHAPE.format(self.name): _int64_feature(self.y_shape)
+        }
+
+    def process_record(self, record):
+        x_field = self.XSHAPE.format(self.name)
+        y_field = self.YSHAPE.format(self.name)
+        self.serialized = {
+            self.name: record[self.name],
+            x_field: record[x_field],
+            y_field: record[y_field]
+        }
+        shape = tf.parallel_stack([tf.cast(record[x_field], tf.int32), tf.cast(record[y_field], tf.int32)])
+        dense = tf.sparse_tensor_to_dense(record[self.name], default_value=0)
+        self.tensor = tf.reshape(dense, shape)
 
 
 class RecordMeta(type):
@@ -69,16 +196,27 @@ class BaseDataRecord(object, metaclass=RecordMeta):
     FEATURES = set()
 
     def __setitem__(self, key, value):
-        setattr(self, key, value)
+        if key in self.DATA_FIELDS:
+            field = getattr(self, key)
+            field.process_raw(value)
+        else:
+            setattr(self, key, value)
 
     def __getitem__(self, key):
-        return getattr(self, key)
+        if key in self.DATA_FIELDS:
+            field = getattr(self, key)
+            if field.tensor:
+                return field.tensor
+            else:
+                return field.raw
+        else:
+            return getattr(self, key)
 
     def _collect_data(self):
         data = {}
         for item in self.DATA_FIELDS:
-            field = self[item]
-            data[field.name] = field.value
+            field = getattr(self, item)
+            data.update(field.serialized)
 
         return data
 
@@ -93,7 +231,7 @@ class BaseDataRecord(object, metaclass=RecordMeta):
         record_description = {}
         for item in cls.DATA_FIELDS:
             field = getattr(cls, item)
-            record_description[field.name] = field.descriptor
+            record_description.update(field.descriptor)
 
         sample = tf.parse_single_example(data_record, record_description)
         return sample
@@ -103,13 +241,15 @@ class BaseDataRecord(object, metaclass=RecordMeta):
         features, labels = {}, {}
         for item in cls.FEATURES:
             field = getattr(cls, item)
-            features[field.name] = field.parse(data_record[field.name])
+            field.process_record(data_record)
+            features[field.name] = field.tensor
 
         for item in cls.DATA_FIELDS:
             if item in cls.FEATURES:
                 continue
 
             field = getattr(cls, item)
-            labels[field.name] = field.parse(data_record[field.name])
+            field.process_record(data_record)
+            labels[field.name] = field.tensor
 
         return features, labels

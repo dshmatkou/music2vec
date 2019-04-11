@@ -14,19 +14,22 @@ def cli():
 @click.option('-a', '--audio-processor', default='mfcc', help='Audio preprocessor')
 @click.option('-o', '--output-dir', required=True, help='Output directory')
 @click.option('-e', '--with-echonest', required=True, help='Enable echonest features (may reduce result dataset)')
+@click.option('-t', '--test-size', default=0.3, type=float, help='How much data will be used in test part of dataset')
 def preprocess_dataset(
         dataset_dir,
         dataset_size,
         audio_processor,
         output_dir,
         with_echonest,
+        test_size,
 ):
     pds(
         dataset_dir,
         dataset_size,
         audio_processor,
         output_dir,
-        with_echonest
+        with_echonest,
+        test_size,
     )
 
 

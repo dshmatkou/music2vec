@@ -1,9 +1,14 @@
-import tensorflow as tf
+import numpy as np
 
 
 def to_categorical(mapping, values):
     nv = {mapping[value] for value in values}
-    return len(mapping), list(nv)
+    result = [
+        1 if i in nv else 0
+        for i in range(len(mapping))
+    ]
+    result = np.array(result)
+    return result
 
 
 class CategoricalColumnProcessor(object):

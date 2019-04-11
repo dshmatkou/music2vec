@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import tensorflow as tf
 from common.records.record import Record
@@ -14,11 +15,8 @@ def prepare_dataset(ds_path):
         Record.deserialize
     ).map(
         Record.decompose_on_feature_labels
-    ).shuffle()
-    train = dataset.take(500)
-    test = dataset.skip(500)
-
-    return train, test
+    ).shuffle(1000, 54321, reshuffle_each_iteration=True)
+    return dataset
 
 
 def parse_args(parser):
@@ -28,11 +26,7 @@ def parse_args(parser):
 
 
 def main(dataset):
-
     logger.info('Start')
-    train, test = prepare_dataset(dataset)
-
-    logger.info('Train')
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
         config=tf.estimator.RunConfig(
@@ -40,8 +34,17 @@ def main(dataset):
             model_dir='/tmp/music2vec_models',
         )
     )
-    estimator.train(train.batch(100).shuffle(reshuffle_each_iteration=True), steps=5)
+
+    logger.info('Load dataset')
+    train_path = os.path.join(dataset, 'train.tfrecord')
+    test_path = os.path.join(dataset, 'test.tfrecord')
+
+    logger.info('Train')
+    estimator.train(
+        input_fn=lambda: prepare_dataset(train_path),
+        steps=5
+    )
 
     logger.info('Test')
-    e = estimator.evaluate(train.batch(100))
+    e = estimator.evaluate(lambda: prepare_dataset(test_path))
     print("Testing Accuracy:", e['accuracy'])
