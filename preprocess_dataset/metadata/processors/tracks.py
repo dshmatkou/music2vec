@@ -3,7 +3,6 @@ import logging
 import pandas
 import six
 from dateutil.parser import parse
-from common.records.record import Record
 from preprocess_dataset.metadata.processors.base import CategoricalColumnProcessor
 
 logger = logging.getLogger(__name__)
@@ -84,13 +83,11 @@ def extract_track_metadata(dataset_fname, dataset_size):
 
     logger.info('Processing records')
     for index, row in using_tracks.iterrows():
-        dataset[index] = record = Record()
-        record.track_id = index
-        record.subset = row[SET_SUBSET]
+        dataset[index] = record = {}
+        record['track_id'] = index
+        record['subset'] = row[SET_SUBSET]
 
         for processor in COLUMNS_PROCESSORS:
             dataset[index].update(processor.process_item(index))
-
-        dataset[index]['subset'] = row[SET_SUBSET]
 
     return dataset

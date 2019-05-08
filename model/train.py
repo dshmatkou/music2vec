@@ -2,21 +2,29 @@ import logging
 import os
 import sys
 import tensorflow as tf
-from common.records.record import Record
+from common.dataset_records import FeaturedRecord
 from model.model import model_fn
+tf.enable_eager_execution()
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
 def prepare_dataset(ds_path):
-    dataset = tf.data.TFRecordDataset([ds_path])
-    dataset = dataset.map(
-        Record.deserialize
+    dataset = tf.data.TFRecordDataset(
+        ds_path
     ).map(
-        Record.decompose_on_feature_labels
-    ).shuffle(1000, 54321, reshuffle_each_iteration=True)
-    return dataset
+        FeaturedRecord.parse
+    ).map(
+        FeaturedRecord.split_features_labels
+    ).shuffle(
+        1000, 54321, reshuffle_each_iteration=True
+    ).batch(
+        100
+    ).prefetch(
+        100
+    )
+    return dataset.make_one_shot_iterator()
 
 
 def parse_args(parser):
@@ -41,7 +49,7 @@ def main(dataset):
 
     logger.info('Train')
     estimator.train(
-        input_fn=lambda: prepare_dataset(train_path),
+        input_fn=lambda: prepare_dataset(train_path).get_next(),
         steps=5
     )
 

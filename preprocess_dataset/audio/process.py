@@ -1,5 +1,6 @@
 import logging
 import os
+import numpy as np
 from preprocess_dataset.audio.processors import get_processor
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ def process_audio(dataset_dir, audio_metadata, proc_name):
         )
         features = processor(audio_path)
 
-        rows, cols = features.shape
+        features = np.reshape(features, features.shape + (1,))  # to make it picture-like
         audio_metadata[track_id]['feature'] = features
 
     return audio_metadata

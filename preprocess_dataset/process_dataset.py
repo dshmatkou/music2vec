@@ -1,12 +1,14 @@
 import logging
 import os
+import random
 import shutil
 import sys
-import tempfile
 import tensorflow as tf
+from contextlib import ExitStack
 from preprocess_dataset.audio.process import process_audio
 from itertools import islice
 from preprocess_dataset.metadata.process import process_metadata
+from common.dataset_records import FeaturedRecord
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger('__name__')
@@ -29,7 +31,8 @@ def batch_dataset(iterable, n=10):
 
 def write_dataset(dataset, output_path):
     with tf.python_io.TFRecordWriter(output_path) as tfwriter:
-        for record in dataset.make_one_shot_iterator():
+        iterator = dataset.make_one_shot_iterator()
+        for record in iterator:
             tfwriter.write(record)
 
 
@@ -60,42 +63,44 @@ def main(
         with_echonest,
     )
 
+    if os.path.exists(output_name):
+        shutil.rmtree(output_name)
+    os.mkdir(output_name)
+
+    train_fn = os.path.join(output_name, 'train.tfrecord')
+    test_fn = os.path.join(output_name, 'test.tfrecord')
+
     logger.info('Start batch processing')
-    with tempfile.NamedTemporaryFile(suffix='.tfrecord') as tmpf:
-        with tf.python_io.TFRecordWriter(tmpf.name) as tfwriter:
-            for bn, batch in enumerate(batch_dataset(tracks_metadata.items())):
-                logger.info('Processing %s batch', bn)
-                batch = dict(batch)
 
-                logger.info('Start processing audio')
-                batch = process_audio(
-                    dataset_dir,
-                    batch,
-                    audio_processor,
-                )
+    with ExitStack() as stack:
+        train_writer = stack.enter_context(tf.python_io.TFRecordWriter(train_fn))
+        test_writer = stack.enter_context(tf.python_io.TFRecordWriter(test_fn))
+        for bn, batch in enumerate(batch_dataset(tracks_metadata.items())):
+            logger.info('Processing %s batch', bn)
+            batch = dict(batch)
 
-                logger.info('Start writing data')
-                for item_id, features in batch.items():
-                    record = tf.train.Features(feature=features)
-                    example = tf.train.Example(features=record)
-                    tfwriter.write(example.SerializeToString())
+            logger.info('Start processing audio')
+            batch = process_audio(
+                dataset_dir,
+                batch,
+                audio_processor,
+            )
 
-                tfwriter.flush()
-                break
+            logger.info('Serializing batch')
+            serialized = [
+                FeaturedRecord.serialize(record)
+                for record in batch.values()
+            ]
 
-        logger.info('Split train test')
-        dataset = tf.data.TFRecordDataset([tmpf.name])
-        train_size = len(tracks_metadata) * (1 - test_size)
+            logger.info('Writing data')
+            for item in serialized:
+                if random.random() > test_size:
+                    train_writer.write(item)
+                else:
+                    test_writer.write(item)
 
-        dataset.shuffle(1000, 1234)
-        train = dataset.take(train_size)
-        test = dataset.skip(train_size)
-
-        if os.path.exists(output_name):
-            shutil.rmtree(output_name)
-
-        os.mkdir(output_name)
-        write_dataset(train, os.path.join(output_name, 'train.tfrecord'))
-        write_dataset(test, os.path.join(output_name, 'test.tfrecord'))
+            train_writer.flush()
+            test_writer.flush()
+            break
 
     logger.info('Finished')

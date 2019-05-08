@@ -14,11 +14,11 @@ def build_simple_cnn(input, kernel_size):
     )
 
 
-def build_kernel_model(feature):
+def build_kernel_model(input):
     with tf.variable_scope('kernel_model'):
-        cnn1 = build_simple_cnn(feature, [5, 5])
-        cnn2 = build_simple_cnn(feature, [3, 3])
-        cnn3 = build_simple_cnn(feature, [1, 1])
+        cnn1 = build_simple_cnn(input, [5, 5])
+        cnn2 = build_simple_cnn(input, [3, 3])
+        cnn3 = build_simple_cnn(input, [1, 1])
 
         pool1 = tf.layers.max_pooling2d(cnn1, pool_size=[2, 2], strides=2)
         pool2 = tf.layers.max_pooling2d(cnn2, pool_size=[2, 2], strides=2)
@@ -28,7 +28,10 @@ def build_kernel_model(feature):
         flat2 = tf.contrib.layers.flatten(pool2)
         flat3 = tf.contrib.layers.flatten(pool3)
 
-        result = tf.concat([flat1, flat2, flat3], axis=1)
+        all_features = tf.concat([flat1, flat2, flat3], axis=1)
+
+        result = tf.layers.dense(all_features, 200)
+
     return result
 
 
