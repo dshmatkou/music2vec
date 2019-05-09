@@ -54,7 +54,7 @@ def build_simple_multilabel_loss(kernel_model, labels, label_name):
     )
     summaries = [
         tf.summary.scalar('multilabel_loss/{}'.format(label_name), loss),
-        tf.summary.scalar('multilabel_accuracy/{}'.format(label_name), acc[0]),
+        tf.summary.scalar('multilabel_accuracy/{}'.format(label_name), acc),
     ]
     return loss, acc, summaries
 
@@ -72,7 +72,7 @@ def build_simple_logit_loss(kernel_model, labels, label_name):
     )
     summaries = [
         tf.summary.scalar('logit_loss/{}'.format(label_name), loss),
-        tf.summary.scalar('logit_accuracy/{}'.format(label_name), acc[0]),
+        tf.summary.scalar('logit_accuracy/{}'.format(label_name), acc),
     ]
     return loss, acc, summaries
 
@@ -94,7 +94,7 @@ def build_simple_cat_loss(kernel_model, labels, label_name):
     )
     summaries = [
         tf.summary.scalar('category_loss/{}'.format(label_name), loss),
-        tf.summary.scalar('category_accuracy/{}'.format(label_name), acc[0]),
+        tf.summary.scalar('category_accuracy/{}'.format(label_name), acc),
     ]
     return loss, acc, summaries
 
@@ -117,7 +117,6 @@ def model_fn(features, labels, mode):
             losses.append(loss)
             accs['genres_all'] = acc
             summaries.extend(label_summaries)
-
     with tf.variable_scope('losses/genres_top'):
         if 'genres_top' in labels:
             loss, acc, label_summaries = build_simple_multilabel_loss(model, labels, 'genres_top')
@@ -205,7 +204,7 @@ def model_fn(features, labels, mode):
                 training_hooks=[summary_hook],
             )
 
-    with tf.variable_scope('accuracy'):
+    if tf.estimator.ModeKeys.EVAL:
         return tf.estimator.EstimatorSpec(
             mode=mode,
             loss=general_loss,

@@ -2,35 +2,11 @@ import logging
 import os
 import sys
 import tensorflow as tf
-from common.dataset_records import FeaturedRecord
 from model.model import model_fn
-tf.enable_eager_execution()
+from model.utils import prepare_dataset
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
-
-
-def prepare_dataset(ds_path):
-    dataset = tf.data.TFRecordDataset(
-        ds_path
-    ).map(
-        FeaturedRecord.parse
-    ).map(
-        FeaturedRecord.split_features_labels
-    ).shuffle(
-        1000
-    ).batch(
-        100
-    ).prefetch(
-        100
-    ).repeat()
-    return dataset
-
-
-def parse_args(parser):
-    parser.add_argument('--dataset', help='Path to dataset')
-    args = parser.parse_args()
-    return args
 
 
 def main(dataset):
@@ -47,11 +23,11 @@ def main(dataset):
     train_path = os.path.join(dataset, 'train.tfrecord')
     test_path = os.path.join(dataset, 'test.tfrecord')
 
-    # logger.info('Train')
-    # estimator.train(
-    #     input_fn=lambda: prepare_dataset(train_path),
-    #     steps=5
-    # )
+    logger.info('Train')
+    estimator.train(
+        input_fn=lambda: prepare_dataset(train_path),
+        steps=5
+    )
 
     logger.info('Test')
     e = estimator.evaluate(lambda: prepare_dataset(test_path))

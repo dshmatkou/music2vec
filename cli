@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import click
 from preprocess_dataset.process_dataset import main as pds
 from model.train import main as tr
@@ -13,23 +15,23 @@ def cli():
 @click.option('-s', '--dataset-size', required=True, help='Size of processing dataset')
 @click.option('-a', '--audio-processor', default='mfcc', help='Audio preprocessor')
 @click.option('-o', '--output-dir', required=True, help='Output directory')
-@click.option('-e', '--with-echonest', required=True, help='Enable echonest features (may reduce result dataset)')
-@click.option('-t', '--test-size', default=0.3, type=float, help='How much data will be used in test part of dataset')
+@click.option('-t', '--test-size', default=0.25, type=float, help='How much data will be used in test part of dataset')
+@click.option('-v', '--validate-size', default=0.05, type=float, help='How much data will be used in validate part of dataset')
 def preprocess_dataset(
         dataset_dir,
         dataset_size,
         audio_processor,
         output_dir,
-        with_echonest,
         test_size,
+        validate_size
 ):
     pds(
         dataset_dir,
         dataset_size,
         audio_processor,
         output_dir,
-        with_echonest,
         test_size,
+        validate_size,
     )
 
 

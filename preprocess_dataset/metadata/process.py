@@ -10,7 +10,7 @@ def get_metadata_fpath(data_dir, metadata_fn):
     return os.path.join(data_dir, 'fma_metadata', metadata_fn)
 
 
-def process_metadata(data_dir, dataset_size, enable_echonest=False):
+def process_metadata(data_dir, dataset_size, enable_echonest=True):
     logger.info('Loading metadata from tracks.csv')
     tracks_metadata = extract_track_metadata(
         get_metadata_fpath(data_dir, 'tracks.csv'),

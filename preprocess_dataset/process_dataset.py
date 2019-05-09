@@ -14,14 +14,14 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger('__name__')
 
 
-def get_full_output_name(output_dir, dataset_size, audio_processor, with_echonest):
-    dataset_dir = os.path.join(output_dir, 'dataset-{}-{}-{}-echonest'.format(
-        dataset_size, audio_processor, 'with' if with_echonest else 'no'
+def get_full_output_name(output_dir, dataset_size, audio_processor):
+    dataset_dir = os.path.join(output_dir, 'dataset-{}-{}'.format(
+        dataset_size, audio_processor
     ))
     return dataset_dir
 
 
-def batch_dataset(iterable, n=10):
+def batch_dataset(iterable, n=100):
     i = iter(iterable)
     piece = islice(i, n)
     while piece:
@@ -41,8 +41,8 @@ def main(
     dataset_size,
     audio_processor,
     output_dir,
-    with_echonest,
-    test_size
+    test_size,
+    validate_size
 ):
     logger.info('Start processing')
 
@@ -53,14 +53,12 @@ def main(
     tracks_metadata = process_metadata(
         dataset_dir,
         dataset_size,
-        with_echonest,
     )
 
     output_name = get_full_output_name(
         output_dir,
         dataset_size,
         audio_processor,
-        with_echonest,
     )
 
     if os.path.exists(output_name):
@@ -69,12 +67,14 @@ def main(
 
     train_fn = os.path.join(output_name, 'train.tfrecord')
     test_fn = os.path.join(output_name, 'test.tfrecord')
+    validate_fn = os.path.join(output_name, 'validate.tfrecord')
 
     logger.info('Start batch processing')
 
     with ExitStack() as stack:
         train_writer = stack.enter_context(tf.python_io.TFRecordWriter(train_fn))
         test_writer = stack.enter_context(tf.python_io.TFRecordWriter(test_fn))
+        validate_writer = stack.enter_context(tf.python_io.TFRecordWriter(validate_fn))
         for bn, batch in enumerate(batch_dataset(tracks_metadata.items())):
             logger.info('Processing %s batch', bn)
             batch = dict(batch)
@@ -94,13 +94,16 @@ def main(
 
             logger.info('Writing data')
             for item in serialized:
-                if random.random() > test_size:
-                    train_writer.write(item)
-                else:
+                rand = random.random()
+                if rand <= validate_size:
+                    validate_writer.write(item)
+                elif validate_size < rand <= (validate_size + test_size):
                     test_writer.write(item)
+                else:
+                    train_writer.write(item)
 
             train_writer.flush()
             test_writer.flush()
-            break
+            validate_writer.flush()
 
     logger.info('Finished')
