@@ -22,11 +22,12 @@ def get_full_output_name(output_dir, dataset_size, audio_processor):
 
 
 def batch_dataset(iterable, n=100):
-    i = iter(iterable)
-    piece = islice(i, n)
-    while piece:
-        yield piece
-        piece = islice(i, n)
+    it = iter(iterable)
+    while True:
+        chunk = tuple(islice(it, n))
+        if not chunk:
+            return
+        yield chunk
 
 
 def write_dataset(dataset, output_path):
@@ -75,6 +76,7 @@ def main(
         train_writer = stack.enter_context(tf.python_io.TFRecordWriter(train_fn))
         test_writer = stack.enter_context(tf.python_io.TFRecordWriter(test_fn))
         validate_writer = stack.enter_context(tf.python_io.TFRecordWriter(validate_fn))
+
         for bn, batch in enumerate(batch_dataset(tracks_metadata.items())):
             logger.info('Processing %s batch', bn)
             batch = dict(batch)
