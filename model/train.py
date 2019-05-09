@@ -18,13 +18,13 @@ def prepare_dataset(ds_path):
     ).map(
         FeaturedRecord.split_features_labels
     ).shuffle(
-        1000, 54321, reshuffle_each_iteration=True
+        1000
     ).batch(
         100
     ).prefetch(
         100
-    )
-    return dataset.make_one_shot_iterator()
+    ).repeat()
+    return dataset
 
 
 def parse_args(parser):
@@ -47,12 +47,12 @@ def main(dataset):
     train_path = os.path.join(dataset, 'train.tfrecord')
     test_path = os.path.join(dataset, 'test.tfrecord')
 
-    logger.info('Train')
-    estimator.train(
-        input_fn=lambda: prepare_dataset(train_path).get_next(),
-        steps=5
-    )
+    # logger.info('Train')
+    # estimator.train(
+    #     input_fn=lambda: prepare_dataset(train_path),
+    #     steps=5
+    # )
 
     logger.info('Test')
     e = estimator.evaluate(lambda: prepare_dataset(test_path))
-    print("Testing Accuracy:", e['accuracy'])
+    print("Testing Accuracy:", e)

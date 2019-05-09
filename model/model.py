@@ -56,7 +56,7 @@ def build_simple_multilabel_loss(kernel_model, labels, label_name):
         tf.summary.scalar('multilabel_loss/{}'.format(label_name), loss),
         tf.summary.scalar('multilabel_accuracy/{}'.format(label_name), acc[0]),
     ]
-    return loss, acc[0], summaries
+    return loss, acc, summaries
 
 
 def build_simple_logit_loss(kernel_model, labels, label_name):
@@ -74,7 +74,7 @@ def build_simple_logit_loss(kernel_model, labels, label_name):
         tf.summary.scalar('logit_loss/{}'.format(label_name), loss),
         tf.summary.scalar('logit_accuracy/{}'.format(label_name), acc[0]),
     ]
-    return loss, acc[0], summaries
+    return loss, acc, summaries
 
 
 def build_simple_cat_loss(kernel_model, labels, label_name):
@@ -96,7 +96,7 @@ def build_simple_cat_loss(kernel_model, labels, label_name):
         tf.summary.scalar('category_loss/{}'.format(label_name), loss),
         tf.summary.scalar('category_accuracy/{}'.format(label_name), acc[0]),
     ]
-    return loss, acc[0], summaries
+    return loss, acc, summaries
 
 
 def model_fn(features, labels, mode):
@@ -108,66 +108,78 @@ def model_fn(features, labels, mode):
             predictions=model
         )
 
-    with tf.variable_scope('losses'):
-        losses = []
-        accs = []
-        summaries = []
+    losses = []
+    accs = {}
+    summaries = []
+    with tf.variable_scope('losses/genres_all'):
         if 'genres_all' in labels:
             loss, acc, label_summaries = build_simple_multilabel_loss(model, labels, 'genres_all')
             losses.append(loss)
-            accs.append(acc)
+            accs['genres_all'] = acc
             summaries.extend(label_summaries)
+
+    with tf.variable_scope('losses/genres_top'):
         if 'genres_top' in labels:
             loss, acc, label_summaries = build_simple_multilabel_loss(model, labels, 'genres_top')
             losses.append(loss)
-            accs.append(acc)
+            accs['genres_top'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/release_decade'):
         if 'release_decade' in labels:
             loss, acc, label_summaries = build_simple_cat_loss(model, labels, 'release_decade')
             losses.append(loss)
-            accs.append(acc)
+            accs['release_decade'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/acousticness'):
         if 'acousticness' in labels:
             loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'acousticness')
             losses.append(loss)
-            accs.append(acc)
+            accs['acousticness'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/danceability'):
         if 'danceability' in labels:
             loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'danceability')
             losses.append(loss)
-            accs.append(acc)
+            accs['danceability'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/energy'):
         if 'energy' in labels:
             loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'energy')
             losses.append(loss)
-            accs.append(acc)
+            accs['energy'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/instrumentalness'):
         if 'instrumentalness' in labels:
             loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'instrumentalness')
             losses.append(loss)
-            accs.append(acc)
+            accs['instrumentalness'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/speechiness'):
         if 'speechiness' in labels:
             loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'speechiness')
             losses.append(loss)
-            accs.append(acc)
+            accs['speechiness'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/happiness'):
         if 'happiness' in labels:
             loss, acc, label_summaries = build_simple_logit_loss(model, labels, 'happiness')
             losses.append(loss)
-            accs.append(acc)
+            accs['happiness'] = acc
             summaries.extend(label_summaries)
+    with tf.variable_scope('losses/artist_location'):
         if 'artist_location' in labels:
             loss, acc, label_summaries = build_simple_cat_loss(model, labels, 'artist_location')
             losses.append(loss)
-            accs.append(acc)
+            accs['artist_location'] = acc
             summaries.extend(label_summaries)
 
-    with tf.variable_scope('optimizer'):
+    with tf.variable_scope('losses/total'):
         general_loss = tf.math.reduce_sum(losses)
         summaries.append(
             tf.summary.scalar('total_loss', general_loss)
         )
+
+    with tf.variable_scope('optimizer'):
         if mode == tf.estimator.ModeKeys.TRAIN:
             optimizer = tf.train.AdamOptimizer(
                 learning_rate=0.01,
@@ -197,8 +209,5 @@ def model_fn(features, labels, mode):
         return tf.estimator.EstimatorSpec(
             mode=mode,
             loss=general_loss,
-            eval_metric_ops={
-                'accuracy': sum(accs),
-            }
+            eval_metric_ops=accs
         )
-
