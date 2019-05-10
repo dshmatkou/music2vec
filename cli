@@ -2,6 +2,7 @@
 
 import click
 from preprocess_dataset.process_dataset import main as pds
+from model.evaluate import evaluate
 from model.train import main as tr
 
 
@@ -39,6 +40,12 @@ def preprocess_dataset(
 @click.option('-d', '--dataset', help='Path to dataset')
 def train(dataset):
     tr(dataset)
+
+
+@cli.command('evaluate', help='Evaluate music2vec model')
+@click.option('-d', '--dataset', help='Path to dataset')
+def train(dataset):
+    evaluate(dataset)
 
 
 if __name__ == '__main__':

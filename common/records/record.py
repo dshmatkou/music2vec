@@ -75,3 +75,14 @@ class BaseDataRecord(object, metaclass=RecordMeta):
             labels[item] = data_dict[item]
 
         return features, labels
+
+    @classmethod
+    def unpack_str(cls, buffer):
+        example = tf.train.Example()
+        example.ParseFromString(buffer)
+        record = {}
+        for field_name in cls.DATA_FIELDS:
+            field = getattr(cls, field_name)
+            record[field_name] = field.unpack(example.features.feature[field_name])
+
+        return record

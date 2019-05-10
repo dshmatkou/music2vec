@@ -18,6 +18,7 @@ def build_simple_cnn(input, kernel_size):
 
 
 def build_kernel_model(input):
+    input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
         cnn1 = build_simple_cnn(input, [5, 5])
         cnn2 = build_simple_cnn(input, [3, 3])
@@ -39,6 +40,7 @@ def build_kernel_model(input):
 
 
 def build_simple_multilabel_loss(kernel_model, label, label_name):
+    label = tf.cast(label, tf.float32)
     with tf.variable_scope('predictions/{}'.format(label_name)):
         pred = tf.layers.dense(
             inputs=kernel_model,
@@ -46,15 +48,13 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
             activation=tf.nn.relu,
         )
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.nn.sigmoid_cross_entropy_with_logits(
-            labels=label,
+        loss = tf.losses.sigmoid_cross_entropy(
+            multi_class_labels=label,
             logits=pred,
         )
-        # to cast to scalar
-        loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1))
     with tf.variable_scope('accuracies/{}'.format(label_name)):
         acc = tf.metrics.accuracy(
-            labels=tf.round(tf.nn.sigmoid(label)),
+            labels=label,
             predictions=pred,
         )
     summaries = [
@@ -66,6 +66,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 
 
 def build_simple_logit_loss(kernel_model, label, label_name):
+    label = tf.cast(label, tf.float32)
     with tf.variable_scope('predictions/{}'.format(label_name)):
         pred = tf.layers.dense(inputs=kernel_model, units=1, activation=None)
 
@@ -76,7 +77,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
-        acc = tf.metrics.accuracy(
+        acc = tf.metrics.mean_squared_error(
             labels=label,
             predictions=pred,
         )
@@ -89,6 +90,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
 
 
 def build_simple_cat_loss(kernel_model, label, label_name):
+    label = tf.cast(label, tf.float32)
     with tf.variable_scope('predictions/{}'.format(label_name)):
         pred = tf.layers.dense(
             inputs=kernel_model,
@@ -104,8 +106,8 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
         acc = tf.metrics.accuracy(
-            labels=tf.argmax(label, axis=1),
-            predictions=tf.argmax(pred, axis=1),
+            labels=label,
+            predictions=pred,
         )
     summaries = [
         tf.summary.scalar('loss', loss),
@@ -159,7 +161,7 @@ def model_fn(features, labels, mode):
             summaries.append(
                 tf.summary.scalar('total_loss', total_loss)
             )
-            losses.append(total_loss)
+            # losses.append(total_loss)
 
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
@@ -167,7 +169,7 @@ def model_fn(features, labels, mode):
                     learning_rate=0.1,
                     epsilon=0.1,
                 )
-                # optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 1)
+                optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 1)
                 training_ops = [
                     optimizer.minimize(
                         loss=loss,

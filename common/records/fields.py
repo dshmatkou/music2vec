@@ -59,6 +59,13 @@ class BaseField(object):
     def process_raw(self, value):
         raise NotImplemented
 
+    def unpack(self, feature):
+        _, _, unpack = self.AVAILABLE_DTYPES[self.dtype]
+        unpacked = unpack(feature)
+        result = np.array(unpacked)
+        result = np.reshape(result, self.shape)
+        return result
+
 
 class ScalarField(BaseField):
 
@@ -76,6 +83,10 @@ class ScalarField(BaseField):
         return {
             self.name: pack([pytype(value)])
         }
+
+    def unpack(self, feature):
+        unpacked = super().unpack(feature)
+        return unpacked[0]
 
 
 class TensorField(BaseField):
