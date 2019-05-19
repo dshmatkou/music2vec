@@ -62,7 +62,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         tf.summary.tensor_summary('accuracy', acc),
         tf.summary.tensor_summary('prediction', pred),
     ]
-    return loss, acc, summaries
+    return pred, loss, acc, summaries
 
 
 def build_simple_logit_loss(kernel_model, label, label_name):
@@ -86,7 +86,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         tf.summary.tensor_summary('accuracy', acc),
         tf.summary.tensor_summary('prediction', pred),
     ]
-    return loss, acc, summaries
+    return pred, loss, acc, summaries
 
 
 def build_simple_cat_loss(kernel_model, label, label_name):
@@ -114,7 +114,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         tf.summary.tensor_summary('accuracy', acc),
         tf.summary.tensor_summary('prediction', pred),
     ]
-    return loss, acc, summaries
+    return pred, loss, acc, summaries
 
 
 METRICS = {
@@ -136,22 +136,18 @@ def model_fn(features, labels, mode):
     with tf.variable_scope('model'):
         model = build_kernel_model(features['feature'])
 
-        if mode == tf.estimator.ModeKeys.PREDICT:
-            return tf.estimator.EstimatorSpec(
-                mode,
-                predictions=model
-            )
-
         losses = []
         accs = {}
         summaries = []
+        predictions = {}
 
         for label_name, metric in METRICS.items():
             if label_name not in labels:
                 logger.warning('No label %s in labels', label_name)
                 continue
 
-            loss, acc, lsum = metric(model, labels[label_name], label_name)
+            pred, loss, acc, lsum = metric(model, labels[label_name], label_name)
+            predictions[label_name] = pred
             losses.append(loss)
             accs[label_name] = acc
             summaries.extend(lsum)
@@ -162,6 +158,13 @@ def model_fn(features, labels, mode):
                 tf.summary.scalar('total_loss', total_loss)
             )
             # losses.append(total_loss)
+
+        if mode == tf.estimator.ModeKeys.PREDICT:
+            predictions['vector'] = model
+            return tf.estimator.EstimatorSpec(
+                mode,
+                predictions=predictions
+            )
 
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):

@@ -17,15 +17,15 @@ def vectorize_dataset(dataset_fn, estimator):
         for buffer in tf.python_io.tf_record_iterator(dataset_fn)
     ]
     features = {'feature': np.array([item['feature'] for item in dataset])}
-    vectors = estimator.predict(
+    predictions = estimator.predict(
         input_fn=tf.estimator.inputs.numpy_input_fn(
             x=features,
             shuffle=False
         )
     )
-    for item, vector in zip(dataset, vectors):
+    for item, prediction in zip(dataset, predictions):
         item.pop('feature')
-        item['vector'] = vector
+        item['vector'] = prediction['vector']
     return dataset
 
 
