@@ -1,5 +1,6 @@
 import tensorflow as tf
 import logging
+from common.dataset_records import FeaturedRecord  # XXX: heavy link
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +18,12 @@ def build_simple_cnn(input, kernel_size):
     )
 
 
+# add activations
 def build_kernel_model(input):
     input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
-        cnn1 = build_simple_cnn(input, [5, 5])
-        cnn2 = build_simple_cnn(input, [3, 3])
+        cnn1 = build_simple_cnn(input, [9, 9])
+        cnn2 = build_simple_cnn(input, [5, 5])
         cnn3 = build_simple_cnn(input, [1, 1])
 
         pool1 = tf.layers.max_pooling2d(cnn1, pool_size=[2, 2], strides=2)
@@ -34,86 +36,105 @@ def build_kernel_model(input):
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
 
-        result = tf.layers.dense(all_features, 200)
+        result = tf.layers.dense(all_features, 200, activation=tf.nn.softmax)
 
     return result
 
 
 def build_simple_multilabel_loss(kernel_model, label, label_name):
-    label = tf.cast(label, tf.float32)
+    summaries = []
+
+    if label is None:
+        units = getattr(FeaturedRecord, label_name).shape[0]
+    else:
+        units = label.shape[1]
+
     with tf.variable_scope('predictions/{}'.format(label_name)):
         pred = tf.layers.dense(
             inputs=kernel_model,
-            units=label.shape[1],
-            activation=tf.nn.relu,
+            units=units,
+            activation=tf.nn.softmax,
         )
+        summaries.append(tf.summary.tensor_summary('prediction', pred))
+
+    if label is None:
+        return pred, None, None, summaries
+
+    label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
         loss = tf.losses.sigmoid_cross_entropy(
             multi_class_labels=label,
             logits=pred,
         )
+        summaries.append(tf.summary.scalar('loss', loss))
     with tf.variable_scope('accuracies/{}'.format(label_name)):
         acc = tf.metrics.accuracy(
             labels=label,
             predictions=pred,
         )
-    summaries = [
-        tf.summary.scalar('loss', loss),
-        tf.summary.tensor_summary('accuracy', acc),
-        tf.summary.tensor_summary('prediction', pred),
-    ]
+        summaries.append(tf.summary.tensor_summary('accuracy', acc))
     return pred, loss, acc, summaries
 
 
 def build_simple_logit_loss(kernel_model, label, label_name):
-    label = tf.cast(label, tf.float32)
+    summaries = []
     with tf.variable_scope('predictions/{}'.format(label_name)):
         pred = tf.layers.dense(inputs=kernel_model, units=1, activation=None)
+        summaries.append(tf.summary.tensor_summary('prediction', pred))
 
+    if label is None:
+        return pred, None, None, summaries
+
+    label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
         loss = tf.losses.mean_squared_error(
             labels=label,
             predictions=pred,
         )
+        summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
         acc = tf.metrics.mean_squared_error(
             labels=label,
             predictions=pred,
         )
-    summaries = [
-        tf.summary.scalar('loss', loss),
-        tf.summary.tensor_summary('accuracy', acc),
-        tf.summary.tensor_summary('prediction', pred),
-    ]
+        summaries.append(tf.summary.tensor_summary('prediction', pred))
     return pred, loss, acc, summaries
 
 
 def build_simple_cat_loss(kernel_model, label, label_name):
-    label = tf.cast(label, tf.float32)
+    summaries = []
+
+    if label is None:
+        units = getattr(FeaturedRecord, label_name).shape[0]
+    else:
+        units = label.shape[1]
+
     with tf.variable_scope('predictions/{}'.format(label_name)):
         pred = tf.layers.dense(
             inputs=kernel_model,
-            units=label.shape[1],
-            activation=tf.nn.relu,
+            units=units,
+            activation=tf.nn.softmax,
         )
+        summaries.append(tf.summary.tensor_summary('prediction', pred))
 
+    if label is None:
+        return pred, None, None, summaries
+
+    label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
         loss = tf.losses.softmax_cross_entropy(
             onehot_labels=label,
             logits=pred,
         )
+        summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
         acc = tf.metrics.accuracy(
             labels=label,
             predictions=pred,
         )
-    summaries = [
-        tf.summary.scalar('loss', loss),
-        tf.summary.tensor_summary('accuracy', acc),
-        tf.summary.tensor_summary('prediction', pred),
-    ]
+        summaries.append(tf.summary.tensor_summary('accuracy', acc))
     return pred, loss, acc, summaries
 
 
@@ -142,22 +163,19 @@ def model_fn(features, labels, mode):
         predictions = {}
 
         for label_name, metric in METRICS.items():
-            if label_name not in labels:
+            if mode == tf.estimator.ModeKeys.TRAIN and label_name not in labels:
                 logger.warning('No label %s in labels', label_name)
                 continue
 
-            pred, loss, acc, lsum = metric(model, labels[label_name], label_name)
+            pred, loss, acc, lsum = metric(
+                model,
+                (labels or {}).get(label_name),
+                label_name
+            )
             predictions[label_name] = pred
             losses.append(loss)
             accs[label_name] = acc
             summaries.extend(lsum)
-
-        with tf.variable_scope('losses/total'):
-            total_loss = tf.math.reduce_sum(losses)
-            summaries.append(
-                tf.summary.scalar('total_loss', total_loss)
-            )
-            # losses.append(total_loss)
 
         if mode == tf.estimator.ModeKeys.PREDICT:
             predictions['vector'] = model
@@ -165,6 +183,13 @@ def model_fn(features, labels, mode):
                 mode,
                 predictions=predictions
             )
+
+        with tf.variable_scope('losses/total'):
+            total_loss = tf.math.reduce_sum(losses)
+            summaries.append(
+                tf.summary.scalar('total_loss', total_loss)
+            )
+            # losses.append(total_loss)
 
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):

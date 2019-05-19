@@ -6,7 +6,6 @@ import sys
 import tensorflow as tf
 from contextlib import ExitStack
 from preprocess_dataset.audio.process import process_audio
-from itertools import islice
 from preprocess_dataset.metadata.process import process_metadata
 from common.dataset_records import FeaturedRecord
 
@@ -22,12 +21,18 @@ def get_full_output_name(output_dir, dataset_size, audio_processor):
 
 
 def batch_dataset(iterable, n=20):
-    it = iter(iterable)
-    while True:
-        chunk = tuple(islice(it, n))
-        if not chunk:
-            return
-        yield chunk
+    batches = []
+    batch = []
+    for item in iterable:
+        if len(batch) == n:
+            batches.append(batch)
+            batch = []
+        batch.append(item)
+
+    if batch:
+        batches.append(batch)
+
+    return batches
 
 
 def write_dataset(dataset, output_path):
@@ -77,8 +82,15 @@ def main(
         test_writer = stack.enter_context(tf.python_io.TFRecordWriter(test_fn))
         validate_writer = stack.enter_context(tf.python_io.TFRecordWriter(validate_fn))
 
-        for bn, batch in enumerate(batch_dataset(tracks_metadata.items())):
+        total_count = len(tracks_metadata)
+        batched_dataset = batch_dataset(tracks_metadata.items())
+        del tracks_metadata
+
+        processed = 0
+        for bn in range(len(batched_dataset)):
             logger.info('Processing %s batch', bn)
+            batch = batched_dataset[bn]
+            batched_dataset[bn] = None
             batch = dict(batch)
 
             logger.info('Start processing audio')
@@ -108,5 +120,9 @@ def main(
             train_writer.flush()
             test_writer.flush()
             validate_writer.flush()
+
+            processed += len(batch)
+            logger.info('Processed %s / %s', processed, total_count)
+            del batch
 
     logger.info('Finished')
