@@ -21,7 +21,7 @@ def get_full_output_name(output_dir, dataset_size, audio_processor):
     return dataset_dir
 
 
-def batch_dataset(iterable, n=100):
+def batch_dataset(iterable, n=20):
     it = iter(iterable)
     while True:
         chunk = tuple(islice(it, n))
@@ -92,6 +92,7 @@ def main(
             serialized = [
                 FeaturedRecord.serialize(record)
                 for record in batch.values()
+                if 'feature' in record
             ]
 
             logger.info('Writing data')

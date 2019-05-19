@@ -30,7 +30,18 @@ def process_audio(dataset_dir, audio_metadata, proc_name):
         audio_path = get_audio_path(
             dataset_dir, audio_metadata[track_id]['subset'], track_id,
         )
-        features = processor(audio_path)
+
+        features = None
+        for _ in range(3):
+            try:
+                features = processor(audio_path)
+                break
+            except Exception:
+                pass
+
+        if features is None:
+            logger.warning('Audio has not been processed: %s', track_id)
+            continue
 
         features = np.reshape(features, features.shape + (1,))  # to make it picture-like
         audio_metadata[track_id]['feature'] = features

@@ -51,15 +51,15 @@ def evaluate(dataset):
     eval_dataset = vectorize_dataset(eval_path, estimator)
 
     logger.info('Check top genres')
-    top_genres_knn = sklearn.neighbors.KNeighborsClassifier(n_neighbors=3)
+    top_genres_knn = sklearn.neighbors.KNeighborsClassifier(n_neighbors=2)
     logger.info('Fit knn')
     top_genres_knn.fit(
-        [item['vector'] for item in test_dataset],
-        [extract_multilabel(item['genres_top']) for item in test_dataset]
+        np.array([item['vector'] for item in test_dataset]),
+        np.array([item['genres_top'] for item in test_dataset], dtype=np.int64),
     )
     logger.info('Evaluate')
     score = top_genres_knn.score(
-        [item['vector'] for item in eval_dataset],
-        [extract_multilabel(item['genres_top']) for item in eval_dataset]
+        np.array([item['vector'] for item in eval_dataset]),
+        np.array([item['genres_top'] for item in eval_dataset], dtype=np.int64),
     )
-    print('Score: {}', score)
+    print('Score:', score)
