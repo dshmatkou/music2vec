@@ -36,7 +36,7 @@ def build_kernel_model(input):
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
 
-        result = tf.layers.dense(all_features, 200, activation=tf.nn.softmax)
+        result = tf.layers.dense(all_features, 200)
 
     return result
 
