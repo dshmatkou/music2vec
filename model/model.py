@@ -15,6 +15,7 @@ def build_simple_cnn(input, kernel_size):
         kernel_size=kernel_size,
         padding='same',
         activation=tf.nn.relu,
+        kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
     )
 
 
