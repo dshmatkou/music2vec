@@ -66,6 +66,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         loss = tf.losses.sigmoid_cross_entropy(
             multi_class_labels=label,
             logits=pred,
+            label_smoothing=0.1
         )
         summaries.append(tf.summary.scalar('loss', loss))
     with tf.variable_scope('accuracies/{}'.format(label_name)):
@@ -80,7 +81,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 def build_simple_logit_loss(kernel_model, label, label_name):
     summaries = []
     with tf.variable_scope('predictions/{}'.format(label_name)):
-        pred = tf.layers.dense(inputs=kernel_model, units=1, activation=None)
+        pred = tf.layers.dense(inputs=kernel_model, units=1, activation=tf.nn.softmax)
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
     if label is None:
@@ -88,10 +89,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.mean_squared_error(
-            labels=label,
-            predictions=pred,
-        )
+        loss = tf.nn.l2_loss(label - pred)
         summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
@@ -124,8 +122,8 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.sigmoid_cross_entropy(
-            multi_class_labels=label,
+        loss = tf.losses.softmax_cross_entropy(
+            onehot_labels=label,
             logits=pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
@@ -195,7 +193,7 @@ def model_fn(features, labels, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
                 optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.01,
+                    learning_rate=0.001,
                     epsilon=0.1,
                 )
                 optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 1)
