@@ -124,8 +124,8 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.softmax_cross_entropy(
-            onehot_labels=label,
+        loss = tf.losses.sparse_softmax_cross_entropy(
+            labels=label,
             logits=pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
