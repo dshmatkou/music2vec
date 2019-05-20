@@ -87,14 +87,15 @@ def build_simple_logit_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.absolute_difference(
+        loss = tf.losses.log_loss(
             labels=label,
             predictions=pred,
+            epsilon=1e-03,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
-        acc = tf.metrics.mean_absolute_error(
+        acc = tf.metrics.mean_squared_error(
             labels=label,
             predictions=pred,
         )
