@@ -8,6 +8,7 @@ from contextlib import ExitStack
 from preprocess_dataset.audio.process import process_audio
 from preprocess_dataset.metadata.process import process_metadata
 from common.dataset_records import FeaturedRecord
+from common.records.exceptions import RecordInvalidShapesError
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger('__name__')
@@ -101,11 +102,18 @@ def main(
             )
 
             logger.info('Serializing batch')
-            serialized = [
-                FeaturedRecord.serialize(record)
-                for record in batch.values()
-                if 'feature' in record
-            ]
+
+            serialized = []
+            for track_id, track_features in batch.items():
+                if 'feature' not in track_features:
+                    logger.warning('Record has not been featured %s', track_id)
+                    continue
+
+                try:
+                    record = FeaturedRecord.serialize(track_features)
+                    serialized.append(record)
+                except RecordInvalidShapesError as ex:
+                    logger.warning('Record has wrong data: %s', str(ex))
 
             logger.info('Writing data')
             for item in serialized:
@@ -124,5 +132,6 @@ def main(
             processed += len(batch)
             logger.info('Processed %s / %s', processed, total_count)
             del batch
+            del serialized
 
     logger.info('Finished')
