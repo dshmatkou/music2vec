@@ -87,10 +87,9 @@ def build_simple_logit_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.log_loss(
+        loss = tf.losses.mean_squared_error(
             labels=label,
             predictions=pred,
-            epsilon=1e-03,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
@@ -124,7 +123,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.sparse_softmax_cross_entropy(
+        loss = tf.losses.sigmoid_cross_entropy(
             labels=label,
             logits=pred,
         )
