@@ -38,8 +38,9 @@ def preprocess_dataset(
 
 @cli.command('train', help='Train music2vec model')
 @click.option('-d', '--dataset', help='Path to dataset')
-def train(dataset):
-    tr(dataset)
+@click.option('-o', '--output', help='Models output dir')
+def train(dataset, output):
+    tr(dataset, output)
 
 
 @cli.command('evaluate', help='Evaluate music2vec model')
