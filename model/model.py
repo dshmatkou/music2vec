@@ -24,9 +24,15 @@ def build_kernel_model(input):
     input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
         cnn1 = build_simple_cnn(input, [1, 1])
+        cnn1 = tf.layers.max_pooling2d(
+            cnn1, pool_size=[3, 3], strides=(1, 1), padding='same'
+        )
         cnn1 = build_simple_cnn(cnn1, [3, 3])
 
         cnn2 = build_simple_cnn(input, [1, 1])
+        cnn2 = tf.layers.max_pooling2d(
+            cnn2, pool_size=[3, 3], strides=(1, 1), padding='same'
+        )
         cnn2 = build_simple_cnn(cnn2, [5, 5])
 
         cnn3 = tf.layers.max_pooling2d(
@@ -34,9 +40,19 @@ def build_kernel_model(input):
         )
         cnn3 = build_simple_cnn(cnn3, [1, 1])
 
-        flat1 = tf.contrib.layers.flatten(cnn1)
-        flat2 = tf.contrib.layers.flatten(cnn2)
-        flat3 = tf.contrib.layers.flatten(cnn3)
+        pool1 = tf.layers.max_pooling2d(
+            cnn1, pool_size=[3, 3], strides=(1, 1), padding='same'
+        )
+        pool2 = tf.layers.max_pooling2d(
+            cnn2, pool_size=[3, 3], strides=(1, 1), padding='same'
+        )
+        pool3 = tf.layers.max_pooling2d(
+            cnn3, pool_size=[3, 3], strides=(1, 1), padding='same'
+        )
+
+        flat1 = tf.contrib.layers.flatten(pool1)
+        flat2 = tf.contrib.layers.flatten(pool2)
+        flat3 = tf.contrib.layers.flatten(pool3)
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
 
