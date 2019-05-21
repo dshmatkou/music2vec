@@ -72,10 +72,9 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.reduce_sum(
-            tf.abs(
-                tf.clip_by_value(label - pred, 1e-6, 1.0)
-            )
+        loss = tf.losses.sigmoid_cross_entropy(
+            label,
+            pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
