@@ -59,7 +59,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
             inputs=kernel_model,
             units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
-            activation = tf.nn.sigmoid,
+            activation=tf.nn.sigmoid,
         )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
@@ -68,11 +68,9 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.reduce_sum(
-            tf.nn.sigmoid_cross_entropy_with_logits(
-                labels=label,
-                logits=pred,
-            )
+        loss = tf.losses.huber_loss(
+            label,
+            pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
     with tf.variable_scope('accuracies/{}'.format(label_name)):
@@ -100,13 +98,14 @@ def build_simple_logit_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.reduce_mean(
-            tf.abs(label - pred)
+        loss = tf.losses.huber_loss(
+            label,
+            pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
-        acc = tf.metrics.mean_squared_error(
+        acc = tf.metrics.accuracy(
             labels=label,
             predictions=pred,
         )
@@ -136,11 +135,9 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(
-                labels=label,
-                logits=pred,
-            )
+        loss = tf.losses.huber_loss(
+            label,
+            pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
