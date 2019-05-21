@@ -37,7 +37,11 @@ def build_kernel_model(input):
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
 
-        result = tf.layers.dense(all_features, 200)
+        result = tf.layers.dense(
+            all_features,
+            200,
+            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
+        )
 
     return result
 
@@ -54,7 +58,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
             units=units,
-            activation=tf.nn.softmax,
+            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
         )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
@@ -66,7 +70,6 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         loss = tf.losses.sigmoid_cross_entropy(
             multi_class_labels=label,
             logits=pred,
-            label_smoothing=0.1
         )
         summaries.append(tf.summary.scalar('loss', loss))
     with tf.variable_scope('accuracies/{}'.format(label_name)):
@@ -81,7 +84,11 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 def build_simple_logit_loss(kernel_model, label, label_name):
     summaries = []
     with tf.variable_scope('predictions/{}'.format(label_name)):
-        pred = tf.layers.dense(inputs=kernel_model, units=1, activation=tf.nn.softmax)
+        pred = tf.layers.dense(
+            inputs=kernel_model,
+            units=1,
+            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
+        )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
     if label is None:
@@ -116,7 +123,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
             units=units,
-            activation=tf.nn.softmax,
+            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
         )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
@@ -145,12 +152,12 @@ METRICS = {
     'genres_all': build_simple_multilabel_loss,
     'genres_top': build_simple_multilabel_loss,
     'release_decade': build_simple_cat_loss,
-    'acousticness': build_simple_logit_loss,
-    'danceability': build_simple_logit_loss,
-    'energy': build_simple_logit_loss,
-    'instrumentalness': build_simple_logit_loss,
-    'speechiness': build_simple_logit_loss,
-    'happiness': build_simple_logit_loss,
+    # 'acousticness': build_simple_logit_loss,
+    # 'danceability': build_simple_logit_loss,
+    # 'energy': build_simple_logit_loss,
+    # 'instrumentalness': build_simple_logit_loss,
+    # 'speechiness': build_simple_logit_loss,
+    # 'happiness': build_simple_logit_loss,
     'artist_location': build_simple_cat_loss,
 }
 
