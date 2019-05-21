@@ -103,7 +103,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = rf.reduce_sum(
+        loss = tf.reduce_sum(
             tf.nn.l2_loss(
                 label - pred
             )
