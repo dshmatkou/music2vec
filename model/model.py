@@ -86,10 +86,15 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 def build_simple_logit_loss(kernel_model, label, label_name):
     summaries = []
 
+    if label is None:
+        units = getattr(FeaturedRecord, label_name).shape[0]
+    else:
+        units = label.shape[1]
+
     with tf.variable_scope(label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
-            units=1,
+            units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
             activation=tf.nn.sigmoid,
         )
