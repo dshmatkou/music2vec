@@ -5,7 +5,7 @@ from common.dataset_records import FeaturedRecord  # XXX: heavy link
 logger = logging.getLogger(__name__)
 
 
-FILTERS = 32
+FILTERS = 64
 
 
 def build_simple_cnn(input, kernel_size):
@@ -44,8 +44,8 @@ def build_kernel_model(input):
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
 
         result = tf.layers.dense(
-            all_features,
-            200,
+            all_features, 200,
+            activation=tf.nn.sigmoid,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
         )
 
@@ -78,13 +78,11 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.reduce_mean(
-            tf.metrics.accuracy(
-                labels=label,
-                predictions=pred,
-            )
+        acc = tf.metrics.accuracy(
+            labels=label,
+            predictions=pred,
         )
-        summaries.append(tf.summary.scalar('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', tf.reduce_mean(acc)))
     return pred, loss, acc, summaries
 
 
@@ -120,13 +118,11 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.reduce_mean(
-            tf.metrics.accuracy(
-                labels=label,
-                predictions=pred,
-            )
+        acc = tf.metrics.accuracy(
+            labels=label,
+            predictions=pred,
         )
-        summaries.append(tf.summary.scalar('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', tf.reduce_mean(acc)))
     return pred, loss, acc, summaries
 
 
@@ -156,13 +152,11 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.reduce_mean(
-            tf.metrics.accuracy(
-                labels=label,
-                predictions=pred,
-            )
+        acc = tf.metrics.accuracy(
+            labels=label,
+            predictions=pred,
         )
-        summaries.append(tf.summary.scalar('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', tf.reduce_mean(acc)))
     return pred, loss, acc, summaries
 
 
@@ -171,9 +165,9 @@ METRICS = {
     'genres_all': build_simple_multilabel_loss,
     'genres_top': build_simple_multilabel_loss,
     # 'release_decade': build_simple_cat_loss,
-    # 'acousticness': build_simple_logit_loss,
-    # 'danceability': build_simple_logit_loss,
-    # 'energy': build_simple_logit_loss,
+    'acousticness': build_simple_logit_loss,
+    'danceability': build_simple_logit_loss,
+    'energy': build_simple_logit_loss,
     # 'instrumentalness': build_simple_logit_loss,
     # 'speechiness': build_simple_logit_loss,
     # 'happiness': build_simple_logit_loss,
@@ -213,10 +207,14 @@ def model_fn(features, labels, mode):
                 predictions=predictions
             )
 
-        with tf.variable_scope('losses/total'):
+        with tf.variable_scope('total'):
             total_loss = tf.math.reduce_sum(losses)
             summaries.append(
-                tf.summary.scalar('total_loss', total_loss)
+                tf.summary.scalar('loss', total_loss)
+            )
+            total_accuracy = tf.reduce_mean(accs.values())
+            summaries.append(
+                tf.summary.scalar('accuracy', total_accuracy)
             )
             # losses.append(total_loss)
 
