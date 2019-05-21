@@ -46,7 +46,6 @@ def build_kernel_model(input):
 
         result = tf.layers.dense(
             all_features, 200,
-            activation=tf.nn.sigmoid,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
         )
 
