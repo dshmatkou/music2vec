@@ -25,17 +25,17 @@ def build_kernel_model(input):
     with tf.variable_scope('kernel'):
         cnn1 = build_simple_cnn(input, [3, 3])
         cnn1 = tf.layers.max_pooling2d(
-            cnn1, pool_size=[2, 2], strides=(1, 1),
+            cnn1, pool_size=[3, 3], strides=(1, 1),
         )
 
         cnn2 = build_simple_cnn(input, [5, 5])
         cnn2 = tf.layers.max_pooling2d(
-            cnn2, pool_size=[2, 2], strides=(1, 1),
+            cnn2, pool_size=[3, 3], strides=(1, 1),
         )
 
         cnn3 = build_simple_cnn(input, [1, 1])
         cnn3 = tf.layers.max_pooling2d(
-            cnn3, pool_size=[2, 2], strides=(1, 1),
+            cnn3, pool_size=[3, 3], strides=(1, 1),
         )
 
         flat1 = tf.contrib.layers.flatten(cnn1)
