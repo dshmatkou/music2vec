@@ -28,13 +28,13 @@ def build_kernel_model(input):
         cnn3 = build_simple_cnn(input, [1, 1])
 
         pool1 = tf.layers.max_pooling2d(
-            cnn1, pool_size=[3, 3], strides=(1, 1), padding='same'
+            cnn1, pool_size=[3, 3], strides=(1, 1),
         )
         pool2 = tf.layers.max_pooling2d(
-            cnn2, pool_size=[3, 3], strides=(1, 1), padding='same'
+            cnn2, pool_size=[3, 3], strides=(1, 1),
         )
         pool3 = tf.layers.max_pooling2d(
-            cnn3, pool_size=[3, 3], strides=(1, 1), padding='same'
+            cnn3, pool_size=[3, 3], strides=(1, 1),
         )
 
         flat1 = tf.contrib.layers.flatten(pool1)
@@ -73,16 +73,18 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
             return pred, None, None, summaries
 
         loss = tf.losses.sigmoid_cross_entropy(
-            label,
-            pred,
+            tf.clip_by_value(label, 1e-3, 0.999),
+            tf.clip_by_value(pred, 1e-3, 0.999),
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
-            labels=label,
-            predictions=pred,
+        acc = tf.reduce_mean(
+            tf.metrics.accuracy(
+                labels=label,
+                predictions=pred,
+            )
         )
-        summaries.append(tf.summary.tensor_summary('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', acc))
     return pred, loss, acc, summaries
 
 
@@ -97,6 +99,12 @@ def build_simple_logit_loss(kernel_model, label, label_name):
     with tf.variable_scope(label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
+            units=250,
+            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
+            activation=tf.nn.relu,
+        )
+        pred = tf.layers.dense(
+            inputs=pred,
             units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
             activation=tf.nn.sigmoid,
@@ -106,18 +114,19 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.reduce_sum(
-            tf.abs(
-                tf.clip_by_value(label - pred, 1e-6, 1.0)
-            )
+        loss = tf.losses.mean_squared_error(
+            tf.clip_by_value(label, 1e-3, 0.999),
+            tf.clip_by_value(pred, 1e-3, 0.999),
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
-            labels=label,
-            predictions=pred,
+        acc = tf.reduce_mean(
+            tf.metrics.accuracy(
+                labels=label,
+                predictions=pred,
+            )
         )
-        summaries.append(tf.summary.tensor_summary('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', acc))
     return pred, loss, acc, summaries
 
 
@@ -141,18 +150,19 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.reduce_sum(
-            tf.abs(
-                tf.clip_by_value(label - pred, 1e-6, 1.0)
-            )
+        loss = tf.losses.softmax_cross_entropy(
+            tf.clip_by_value(label, 1e-3, 0.999),
+            tf.clip_by_value(pred, 1e-3, 0.999),
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
-            labels=label,
-            predictions=pred,
+        acc = tf.reduce_mean(
+            tf.metrics.accuracy(
+                labels=label,
+                predictions=pred,
+            )
         )
-        summaries.append(tf.summary.tensor_summary('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', acc))
     return pred, loss, acc, summaries
 
 
