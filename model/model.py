@@ -79,7 +79,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.scalar('accuracy', acc))
+        summaries.append(tf.summary.tensor_summary('accuracy', acc))
     return pred, loss, acc, summaries
 
 
@@ -113,7 +113,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.scalar('accuracy', acc))
+        summaries.append(tf.summary.tensor_summary('accuracy', acc))
     return pred, loss, acc, summaries
 
 
@@ -147,7 +147,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.scalar('accuracy', acc))
+        summaries.append(tf.summary.tensor_summary('accuracy', acc))
     return pred, loss, acc, summaries
 
 
