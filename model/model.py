@@ -203,7 +203,7 @@ def model_fn(features, labels, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
                 optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.001,
+                    learning_rate=0.1,
                     epsilon=0.1,
                 )
                 optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 1)
