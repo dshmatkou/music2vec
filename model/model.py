@@ -23,8 +23,8 @@ def build_simple_cnn(input, kernel_size):
 def build_kernel_model(input):
     input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
-        cnn1 = build_simple_cnn(input, [5, 5])
-        cnn2 = build_simple_cnn(input, [3, 3])
+        cnn1 = build_simple_cnn(input, [9, 9])
+        cnn2 = build_simple_cnn(input, [5, 5])
         cnn3 = build_simple_cnn(input, [1, 1])
 
         pool1 = tf.layers.max_pooling2d(cnn1, pool_size=[2, 2], strides=2)
@@ -155,16 +155,16 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
 METRICS = {
     # label, metric
-    # 'genres_all': build_simple_multilabel_loss,
+    'genres_all': build_simple_multilabel_loss,
     'genres_top': build_simple_multilabel_loss,
-    # 'release_decade': build_simple_cat_loss,
-    # 'acousticness': build_simple_logit_loss,
-    # 'danceability': build_simple_logit_loss,
-    # 'energy': build_simple_logit_loss,
-    # 'instrumentalness': build_simple_logit_loss,
-    # 'speechiness': build_simple_logit_loss,
-    # 'happiness': build_simple_logit_loss,
-    # 'artist_location': build_simple_cat_loss,
+    'release_decade': build_simple_cat_loss,
+    'acousticness': build_simple_logit_loss,
+    'danceability': build_simple_logit_loss,
+    'energy': build_simple_logit_loss,
+    'instrumentalness': build_simple_logit_loss,
+    'speechiness': build_simple_logit_loss,
+    'happiness': build_simple_logit_loss,
+    'artist_location': build_simple_cat_loss,
 }
 
 
