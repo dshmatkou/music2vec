@@ -108,7 +108,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.scalar('prediction', pred))
+        summaries.append(tf.summary.scalar('accuracy', acc))
     return pred, loss, acc, summaries
 
 
