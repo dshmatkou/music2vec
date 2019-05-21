@@ -72,7 +72,6 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         loss = tf.losses.sigmoid_cross_entropy(
             label,
             pred,
-            label_smoothing=0.1,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
@@ -104,10 +103,9 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.reduce_sum(
-            tf.nn.l2_loss(
-                label - pred
-            )
+        loss = tf.losses.softmax_cross_entropy(
+            label,
+            pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
@@ -142,7 +140,6 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         loss = tf.losses.softmax_cross_entropy(
             label,
             pred,
-            label_smoothing=0.1,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
