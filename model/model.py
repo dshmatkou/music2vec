@@ -54,7 +54,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
     else:
         units = label.shape[1]
 
-    with tf.variable_scope('predictions/{}'.format(label_name)):
+    with tf.variable_scope(label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
             units=units,
@@ -63,28 +63,27 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
-    if label is None:
-        return pred, None, None, summaries
+        if label is None:
+            return pred, None, None, summaries
 
-    label = tf.cast(label, tf.float32)
-    with tf.variable_scope('losses/{}'.format(label_name)):
         loss = tf.losses.huber_loss(
             label,
             pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
-    with tf.variable_scope('accuracies/{}'.format(label_name)):
-        acc = tf.metrics.accuracy(
+
+        acc = tf.metrics.mean_absolute_error(
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.tensor_summary('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', acc))
     return pred, loss, acc, summaries
 
 
 def build_simple_logit_loss(kernel_model, label, label_name):
     summaries = []
-    with tf.variable_scope('predictions/{}'.format(label_name)):
+
+    with tf.variable_scope(label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
             units=1,
@@ -93,23 +92,20 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
-    if label is None:
-        return pred, None, None, summaries
+        if label is None:
+            return pred, None, None, summaries
 
-    label = tf.cast(label, tf.float32)
-    with tf.variable_scope('losses/{}'.format(label_name)):
         loss = tf.losses.huber_loss(
             label,
             pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-    with tf.variable_scope('accuracies/{}'.format(label_name)):
-        acc = tf.metrics.accuracy(
+        acc = tf.metrics.mean_absolute_error(
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.tensor_summary('prediction', pred))
+        summaries.append(tf.summary.scalar('prediction', pred))
     return pred, loss, acc, summaries
 
 
@@ -121,7 +117,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
     else:
         units = label.shape[1]
 
-    with tf.variable_scope('predictions/{}'.format(label_name)):
+    with tf.variable_scope(label_name):
         pred = tf.layers.dense(
             inputs=kernel_model,
             units=units,
@@ -130,23 +126,20 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
-    if label is None:
-        return pred, None, None, summaries
+        if label is None:
+            return pred, None, None, summaries
 
-    label = tf.cast(label, tf.float32)
-    with tf.variable_scope('losses/{}'.format(label_name)):
         loss = tf.losses.huber_loss(
             label,
             pred,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-    with tf.variable_scope('accuracies/{}'.format(label_name)):
-        acc = tf.metrics.accuracy(
+        acc = tf.metrics.mean_absolute_error(
             labels=label,
             predictions=pred,
         )
-        summaries.append(tf.summary.tensor_summary('accuracy', acc))
+        summaries.append(tf.summary.scalar('accuracy', acc))
     return pred, loss, acc, summaries
 
 
