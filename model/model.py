@@ -29,7 +29,9 @@ def build_kernel_model(input):
         cnn2 = build_simple_cnn(input, [1, 1])
         cnn2 = build_simple_cnn(cnn2, [5, 5])
 
-        cnn3 = tf.layers.max_pooling2d(input, pool_size=[3, 3], strides=(1, 1))
+        cnn3 = tf.layers.max_pooling2d(
+            input, pool_size=[3, 3], strides=(1, 1), padding='same'
+        )
         cnn3 = build_simple_cnn(cnn3, [1, 1])
 
         all_features = tf.concat([cnn1, cnn2, cnn3], axis=1)
