@@ -23,19 +23,16 @@ def build_simple_cnn(input, kernel_size):
 def build_kernel_model(input):
     input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
-        cnn1 = build_simple_cnn(input, [9, 9])
-        cnn2 = build_simple_cnn(input, [5, 5])
-        cnn3 = build_simple_cnn(input, [1, 1])
+        cnn1 = build_simple_cnn(input, [1, 1])
+        cnn1 = build_simple_cnn(cnn1, [3, 3])
 
-        pool1 = tf.layers.max_pooling2d(cnn1, pool_size=[2, 2], strides=2)
-        pool2 = tf.layers.max_pooling2d(cnn2, pool_size=[2, 2], strides=2)
-        pool3 = tf.layers.max_pooling2d(cnn3, pool_size=[2, 2], strides=2)
+        cnn2 = build_simple_cnn(input, [1, 1])
+        cnn2 = build_simple_cnn(cnn2, [5, 5])
 
-        flat1 = tf.contrib.layers.flatten(pool1)
-        flat2 = tf.contrib.layers.flatten(pool2)
-        flat3 = tf.contrib.layers.flatten(pool3)
+        cnn3 = tf.layers.max_pooling2d(input, pool_size=[3, 3], strides=(1, 1))
+        cnn3 = build_simple_cnn(cnn3, [1, 1])
 
-        all_features = tf.concat([flat1, flat2, flat3], axis=1)
+        all_features = tf.concat([cnn1, cnn2, cnn3], axis=1)
 
         result = tf.layers.dense(
             all_features,
@@ -95,7 +92,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.losses.huber_loss(
+        loss = tf.losses.(
             label,
             pred,
         )
