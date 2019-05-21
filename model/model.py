@@ -169,7 +169,17 @@ METRICS = {
 
 def model_fn(features, labels, mode):
     with tf.variable_scope('model'):
-        model = build_kernel_model(features['feature'])
+        normed_features = tf.layers.batch_normalization(
+            features['feature'],
+            training=(mode == tf.estimator.ModeKeys.TRAIN)
+        )
+
+        model = build_kernel_model(features)
+
+        model = tf.layers.batch_normalization(
+            model,
+            training=(mode == tf.estimator.ModeKeys.TRAIN),
+        )
 
         losses = []
         accs = {}
