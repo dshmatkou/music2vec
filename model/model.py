@@ -174,7 +174,7 @@ def model_fn(features, labels, mode):
             training=(mode == tf.estimator.ModeKeys.TRAIN)
         )
 
-        model = build_kernel_model(features)
+        model = build_kernel_model(normed_features)
 
         model = tf.layers.batch_normalization(
             model,
