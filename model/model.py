@@ -212,7 +212,7 @@ def model_fn(features, labels, mode):
             summaries.append(
                 tf.summary.scalar('loss', total_loss)
             )
-            total_accuracy = tf.reduce_mean(accs.values())
+            total_accuracy = tf.reduce_mean(list(accs.values()))
             summaries.append(
                 tf.summary.scalar('accuracy', total_accuracy)
             )
