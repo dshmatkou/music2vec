@@ -92,7 +92,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.losses.(
+        loss = tf.losses.huber_loss(
             label,
             pred,
         )
