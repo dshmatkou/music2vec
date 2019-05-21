@@ -70,7 +70,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
             return pred, None, None, summaries
 
         loss = tf.losses.sigmoid_cross_entropy(
-            tf.add(label,
+            label,
             pred,
             label_smoothing=0.1,
         )
