@@ -34,7 +34,11 @@ def build_kernel_model(input):
         )
         cnn3 = build_simple_cnn(cnn3, [1, 1])
 
-        all_features = tf.concat([cnn1, cnn2, cnn3], axis=1)
+        flat1 = tf.contrib.layers.flatten(cnn1)
+        flat2 = tf.contrib.layers.flatten(cnn2)
+        flat3 = tf.contrib.layers.flatten(cnn3)
+
+        all_features = tf.concat([flat1, flat2, flat3], axis=1)
 
         result = tf.layers.dense(
             all_features,
