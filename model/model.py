@@ -68,16 +68,12 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.sigmoid_cross_entropy(
-            label,
-            pred,
+        loss = tf.reduce_sum(
+            tf.nn.sigmoid_cross_entropy_with_logits(
+                labels=label,
+                logits=pred,
+            )
         )
-        # loss = tf.reduce_sum(
-        #     tf.nn.sigmoid_cross_entropy_with_logits(
-        #         labels=label,
-        #         logits=pred,
-        #     )
-        # )
         summaries.append(tf.summary.scalar('loss', loss))
     with tf.variable_scope('accuracies/{}'.format(label_name)):
         acc = tf.metrics.accuracy(
@@ -104,13 +100,9 @@ def build_simple_logit_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.huber_loss(
-            label,
-            pred,
+        loss = tf.reduce_mean(
+            tf.abs(label - pred)
         )
-        # loss = tf.reduce_mean(
-        #     tf.abs(label - pred)
-        # )
         summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
@@ -144,16 +136,12 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
     label = tf.cast(label, tf.float32)
     with tf.variable_scope('losses/{}'.format(label_name)):
-        loss = tf.losses.softmax_cross_entropy(
-            label,
-            pred,
+        loss = tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(
+                labels=label,
+                logits=pred,
+            )
         )
-        # loss = tf.reduce_mean(
-        #     tf.nn.softmax_cross_entropy_with_logits(
-        #         labels=label,
-        #         logits=pred,
-        #     )
-        # )
         summaries.append(tf.summary.scalar('loss', loss))
 
     with tf.variable_scope('accuracies/{}'.format(label_name)):
