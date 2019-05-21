@@ -37,7 +37,7 @@ def main(dataset, output_dir):
         logger.info('Train')
         estimator.train(
             input_fn=lambda: prepare_dataset(train_path),
-            steps=250,
+            steps=150,
         )
         logger.info('Test')
         e = estimator.evaluate(lambda: prepare_dataset(test_path))
