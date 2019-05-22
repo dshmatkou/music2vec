@@ -5,7 +5,7 @@ from common.dataset_records import FeaturedRecord  # XXX: heavy link
 logger = logging.getLogger(__name__)
 
 
-FILTERS = 42
+FILTERS = 32
 
 
 def build_simple_cnn(input, kernel_size):
@@ -23,17 +23,20 @@ def build_simple_cnn(input, kernel_size):
 def build_kernel_model(input):
     input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
-        cnn1 = build_simple_cnn(input, [3, 3])
+        cnn1 = build_simple_cnn(input, [1, 1])
+        cnn1 = build_simple_cnn(cnn1, [3, 3])
         cnn1 = tf.layers.max_pooling2d(
             cnn1, pool_size=[3, 3], strides=1,
         )
 
-        cnn2 = build_simple_cnn(input, [5, 5])
+        cnn2 = build_simple_cnn(input, [1, 1])
+        cnn2 = build_simple_cnn(cnn2, [5, 5])
         cnn2 = tf.layers.max_pooling2d(
             cnn2, pool_size=[3, 3], strides=1,
         )
 
         cnn3 = build_simple_cnn(input, [1, 1])
+        cnn3 = build_simple_cnn(cnn3, [1, 1])
         cnn3 = tf.layers.max_pooling2d(
             cnn3, pool_size=[3, 3], strides=1,
         )
