@@ -45,7 +45,7 @@ def build_kernel_model(input):
 
         # tower [1, 1]
         cnn3 = tf.layers.max_pooling2d(
-            cnn3, pool_size=[3, 3], strides=1
+            input, pool_size=[3, 3], strides=1
         )
         cnn3 = build_simple_cnn(cnn3, [1, 1])
         cnn3 = tf.layers.max_pooling2d(
