@@ -20,7 +20,7 @@ def build_simple_cnn(input, kernel_size):
 
 
 # add activations
-def build_kernel_model(input):
+def build_kernel_model(input, mode):
     input = tf.cast(input, tf.float32)
     with tf.variable_scope('kernel'):
         # tower [3, 3]
@@ -28,9 +28,17 @@ def build_kernel_model(input):
         cnn1 = tf.layers.max_pooling2d(
             cnn1, pool_size=[3, 3], strides=1
         )
+        cnn1 = tf.layers.dropout(
+            cnn1, 0.2,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
+        )
         cnn1 = build_simple_cnn(cnn1, [3, 3])
         cnn1 = tf.layers.max_pooling2d(
             cnn1, pool_size=[3, 3], strides=1,
+        )
+        cnn1 = tf.layers.dropout(
+            cnn1, 0.2,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
         # tower [5, 5]
@@ -38,9 +46,17 @@ def build_kernel_model(input):
         cnn2 = tf.layers.max_pooling2d(
             cnn2, pool_size=[3, 3], strides=1
         )
+        cnn2 = tf.layers.dropout(
+            cnn2, 0.2,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
+        )
         cnn2 = build_simple_cnn(cnn2, [5, 5])
         cnn2 = tf.layers.max_pooling2d(
             cnn2, pool_size=[3, 3], strides=1,
+        )
+        cnn2 = tf.layers.dropout(
+            cnn2, 0.2,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
         # tower [1, 1]
@@ -50,6 +66,10 @@ def build_kernel_model(input):
         cnn3 = build_simple_cnn(cnn3, [1, 1])
         cnn3 = tf.layers.max_pooling2d(
             cnn3, pool_size=[3, 3], strides=1,
+        )
+        cnn3 = tf.layers.dropout(
+            cnn3, 0.2,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
         flat1 = tf.contrib.layers.flatten(cnn1)
