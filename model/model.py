@@ -5,7 +5,7 @@ from common.dataset_records import FeaturedRecord  # XXX: heavy link
 logger = logging.getLogger(__name__)
 
 
-FILTERS = 48
+FILTERS = 64
 
 
 def build_simple_cnn(input, kernel_size):
@@ -29,7 +29,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.2,
+            cnn1, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn1 = build_simple_cnn(cnn1, [3, 3])
@@ -37,7 +37,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1,
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.2,
+            cnn1, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -47,7 +47,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.2,
+            cnn2, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn2 = build_simple_cnn(cnn2, [5, 5])
@@ -55,7 +55,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1,
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.2,
+            cnn2, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -63,12 +63,16 @@ def build_kernel_model(input, mode):
         cnn3 = tf.layers.max_pooling2d(
             input, pool_size=[3, 3], strides=1
         )
+        cnn3 = tf.layers.dropout(
+            cnn3, 0.3,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
+        )
         cnn3 = build_simple_cnn(cnn3, [1, 1])
         cnn3 = tf.layers.max_pooling2d(
             cnn3, pool_size=[3, 3], strides=1,
         )
         cnn3 = tf.layers.dropout(
-            cnn3, 0.2,
+            cnn3, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -176,7 +180,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
             activation=tf.nn.sigmoid,
         )
-        pred = tf.nn.sigmoid(loss_value)
+        pred = tf.nn.softmax(loss_value)
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
         if label is None:
@@ -258,7 +262,7 @@ def model_fn(features, labels, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
                 optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.1,
+                    learning_rate=0.01,
                     epsilon=0.1,
                 )
                 optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 1)
