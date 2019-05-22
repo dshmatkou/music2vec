@@ -5,7 +5,7 @@ from common.dataset_records import FeaturedRecord  # XXX: heavy link
 logger = logging.getLogger(__name__)
 
 
-FILTERS = 48
+FILTERS = 42
 
 
 def build_simple_cnn(input, kernel_size):
