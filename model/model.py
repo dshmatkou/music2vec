@@ -16,7 +16,7 @@ def build_simple_cnn(input, kernel_size):
         padding='same',
         activation=tf.nn.relu,
         kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.1),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.001),
     )
 
 
