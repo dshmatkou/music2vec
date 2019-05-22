@@ -24,7 +24,9 @@ def vectorize_dataset(dataset_fn, estimator):
         )
     )
     for item, prediction in zip(dataset, predictions):
-        item.pop('feature')
+        for key in item:
+            if key not in prediction:
+                item.pop(key)
         item['vector'] = prediction['vector']
     return dataset
 
@@ -32,6 +34,20 @@ def vectorize_dataset(dataset_fn, estimator):
 def extract_multilabel(label):
     labels = [i for i, item in enumerate(label.tolist()) if round(item) == 1]
     return labels
+
+
+METRICS = {
+    'genres_all': sklearn.linear_model.LogisticRegression(multi_class='multinomial'),
+    'genres_top': sklearn.linear_model.LogisticRegression(multi_class='multinomial'),
+    'release_decade': sklearn.linear_model.LogisticRegression(),
+    'acousticness': sklearn.linear_model.LinearRegression(),
+    'danceability': sklearn.linear_model.LinearRegression(),
+    'energy': sklearn.linear_model.LinearRegression(),
+    'instrumentalness': sklearn.linear_model.LinearRegression(),
+    'speechiness': sklearn.linear_model.LinearRegression(),
+    'happiness': sklearn.linear_model.LinearRegression(),
+    'artist_location': sklearn.linear_model.LogisticRegression(),
+}
 
 
 def evaluate(dataset):
@@ -50,16 +66,18 @@ def evaluate(dataset):
     test_dataset = vectorize_dataset(test_path, estimator)
     eval_dataset = vectorize_dataset(eval_path, estimator)
 
-    logger.info('Check top genres')
-    top_genres_knn = sklearn.neighbors.KNeighborsClassifier(n_neighbors=2)
-    logger.info('Fit knn')
-    top_genres_knn.fit(
-        np.array([item['vector'] for item in test_dataset]),
-        np.array([item['genres_top'] for item in test_dataset], dtype=np.int64),
-    )
-    logger.info('Evaluate')
-    score = top_genres_knn.score(
-        np.array([item['vector'] for item in eval_dataset]),
-        np.array([item['genres_top'] for item in eval_dataset], dtype=np.int64),
-    )
-    print('Score:', score)
+    for name, metric_learner in METRICS.items():
+        if name not in test_dataset[0]:
+            continue
+
+        logger.info('Check: %s', name)
+        metric_learner.fit(
+            np.array([item['vector'] for item in test_dataset]),
+            np.array([item[name] for item in test_dataset], dtype=np.int64),
+        )
+        logger.info('Evaluate')
+        score = metric_learner.score(
+            np.array([item['vector'] for item in eval_dataset]),
+            np.array([item[name] for item in eval_dataset], dtype=np.int64),
+        )
+        print('Score:', score)

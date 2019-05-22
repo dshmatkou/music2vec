@@ -78,7 +78,7 @@ def build_kernel_model(input, mode):
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
         all_features = tf.layers.dropout(
-            all_features, 0.2,
+            all_features, 0.05,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         result = tf.layers.dense(
