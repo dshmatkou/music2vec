@@ -5,7 +5,7 @@ from common.dataset_records import FeaturedRecord  # XXX: heavy link
 logger = logging.getLogger(__name__)
 
 
-FILTERS = 32
+FILTERS = 42
 
 
 def build_simple_cnn(input, kernel_size):
@@ -232,6 +232,7 @@ def model_fn(features, labels, mode):
                     optimizer.minimize(
                         loss=loss,
                         global_step=tf.train.get_global_step(),
+                        aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
                     )
                     for loss in losses
                 ]
