@@ -16,7 +16,6 @@ def build_simple_cnn(input, kernel_size):
         padding='same',
         activation=tf.nn.relu,
         kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.001),
     )
 
 
@@ -113,7 +112,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         loss = tf.losses.sigmoid_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
-        ) + tf.losses.get_regularization_loss()
+        )
         summaries.append(tf.summary.scalar('loss', loss))
 
         acc = tf.metrics.accuracy(
@@ -154,7 +153,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         loss = tf.losses.mean_squared_error(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(pred, 1e-3, 0.999),
-        ) + tf.losses.get_regularization_loss()
+        )
         summaries.append(tf.summary.scalar('loss', loss))
 
         acc = tf.metrics.accuracy(
@@ -190,7 +189,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         loss = tf.losses.softmax_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
-        ) + tf.losses.get_regularization_loss()
+        )
         summaries.append(tf.summary.scalar('loss', loss))
 
         acc = tf.metrics.accuracy(
