@@ -216,7 +216,7 @@ METRICS = {
 def model_fn(features, labels, mode):
     with tf.variable_scope('model'):
 
-        model = build_kernel_model(features['feature'])
+        model = build_kernel_model(features['feature'], mode)
 
         losses = []
         accs = {}
