@@ -25,17 +25,17 @@ def build_kernel_model(input):
     with tf.variable_scope('kernel'):
         cnn1 = build_simple_cnn(input, [3, 3])
         cnn1 = tf.layers.max_pooling2d(
-            cnn1, pool_size=[4, 4], strides=1,
+            cnn1, pool_size=[3, 3], strides=1,
         )
 
         cnn2 = build_simple_cnn(input, [5, 5])
         cnn2 = tf.layers.max_pooling2d(
-            cnn2, pool_size=[4, 4], strides=1,
+            cnn2, pool_size=[3, 3], strides=1,
         )
 
         cnn3 = build_simple_cnn(input, [1, 1])
         cnn3 = tf.layers.max_pooling2d(
-            cnn3, pool_size=[4, 4], strides=1,
+            cnn3, pool_size=[3, 3], strides=1,
         )
 
         flat1 = tf.contrib.layers.flatten(cnn1)
@@ -167,14 +167,14 @@ METRICS = {
     # label, metric
     # 'genres_all': build_simple_multilabel_loss,
     'genres_top': build_simple_multilabel_loss,
-    'release_decade': build_simple_cat_loss,
+    # 'release_decade': build_simple_cat_loss,
     # 'acousticness': build_simple_logit_loss,
     'danceability': build_simple_logit_loss,
     # 'energy': build_simple_logit_loss,
     'instrumentalness': build_simple_logit_loss,
     'speechiness': build_simple_logit_loss,
     # 'happiness': build_simple_logit_loss,
-    'artist_location': build_simple_cat_loss,
+    # 'artist_location': build_simple_cat_loss,
 }
 
 
