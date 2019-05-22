@@ -64,12 +64,12 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         units = label.shape[1]
 
     with tf.variable_scope(label_name):
-        pred = tf.layers.dense(
+        loss_value = tf.layers.dense(
             inputs=kernel_model,
             units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
-            activation=tf.nn.sigmoid,
         )
+        pred = tf.nn.sigmoid(loss_value)
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
         if label is None:
@@ -77,7 +77,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
 
         loss = tf.losses.sigmoid_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
-            tf.clip_by_value(pred, 1e-3, 0.999),
+            tf.clip_by_value(loss_value, 1e-3, 0.999),
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
@@ -140,12 +140,13 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         units = label.shape[1]
 
     with tf.variable_scope(label_name):
-        pred = tf.layers.dense(
+        loss_value = tf.layers.dense(
             inputs=kernel_model,
             units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
             activation=tf.nn.sigmoid,
         )
+        pred = tf.nn.sigmoid(loss_value)
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
         if label is None:
@@ -153,7 +154,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
         loss = tf.losses.softmax_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
-            tf.clip_by_value(pred, 1e-3, 0.999),
+            tf.clip_by_value(loss_value, 1e-3, 0.999),
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
