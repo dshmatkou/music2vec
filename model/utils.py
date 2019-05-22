@@ -15,6 +15,6 @@ def prepare_dataset(ds_path):
         ).shuffle(
             1000
         ).batch(
-            20
+            15
         )
         return dataset
