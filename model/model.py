@@ -276,7 +276,7 @@ def model_fn(features, labels, mode):
                 ]
 
             summary_hook = tf.train.SummarySaverHook(
-                5,
+                1,
                 output_dir='/tmp/music2vec_summary',
                 summary_op=tf.summary.merge(summaries)
             )
