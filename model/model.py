@@ -165,16 +165,16 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
 METRICS = {
     # label, metric
-    'genres_all': build_simple_multilabel_loss,
+    # 'genres_all': build_simple_multilabel_loss,
     'genres_top': build_simple_multilabel_loss,
-    # 'release_decade': build_simple_cat_loss,
+    'release_decade': build_simple_cat_loss,
     # 'acousticness': build_simple_logit_loss,
-    # 'danceability': build_simple_logit_loss,
+    'danceability': build_simple_logit_loss,
     # 'energy': build_simple_logit_loss,
-    # 'instrumentalness': build_simple_logit_loss,
-    # 'speechiness': build_simple_logit_loss,
+    'instrumentalness': build_simple_logit_loss,
+    'speechiness': build_simple_logit_loss,
     # 'happiness': build_simple_logit_loss,
-    # 'artist_location': build_simple_cat_loss,
+    'artist_location': build_simple_cat_loss,
 }
 
 
