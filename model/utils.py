@@ -13,8 +13,8 @@ def prepare_dataset(ds_path):
         ).shuffle(
             1000
         ).prefetch(
-            50
+            20
         ).batch(
-            50
+            20
         )
         return dataset
