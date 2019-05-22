@@ -29,7 +29,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.4,
+            cnn1, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn1 = build_simple_cnn(cnn1, [3, 3])
@@ -37,7 +37,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1,
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.4,
+            cnn1, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -47,7 +47,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.4,
+            cnn2, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn2 = build_simple_cnn(cnn2, [5, 5])
@@ -55,7 +55,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1,
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.4,
+            cnn2, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -68,7 +68,7 @@ def build_kernel_model(input, mode):
             cnn3, pool_size=[3, 3], strides=1,
         )
         cnn3 = tf.layers.dropout(
-            cnn3, 0.4,
+            cnn3, 0.3,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -78,7 +78,7 @@ def build_kernel_model(input, mode):
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
         all_features = tf.layers.dropout(
-            all_features, 0.4,
+            all_features, 0.2,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         result = tf.layers.dense(
