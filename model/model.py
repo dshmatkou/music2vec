@@ -77,10 +77,6 @@ def build_kernel_model(input, mode):
         flat3 = tf.contrib.layers.flatten(cnn3)
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
-        all_features = tf.layers.dropout(
-            all_features, 0.05,
-            training=mode == tf.estimator.ModeKeys.TRAIN,
-        )
         result = tf.layers.dense(
             all_features, 200,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
