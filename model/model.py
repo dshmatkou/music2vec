@@ -15,7 +15,8 @@ def build_simple_cnn(input, kernel_size):
         kernel_size=kernel_size,
         padding='same',
         activation=tf.nn.relu,
-        kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
+        kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.1),
     )
 
 
@@ -29,7 +30,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.2,
+            cnn1, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn1 = build_simple_cnn(cnn1, [3, 3])
@@ -37,7 +38,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1,
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.2,
+            cnn1, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -47,7 +48,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.2,
+            cnn2, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn2 = build_simple_cnn(cnn2, [5, 5])
@@ -55,7 +56,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1,
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.2,
+            cnn2, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -68,7 +69,7 @@ def build_kernel_model(input, mode):
             cnn3, pool_size=[3, 3], strides=1,
         )
         cnn3 = tf.layers.dropout(
-            cnn3, 0.2,
+            cnn3, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -77,7 +78,10 @@ def build_kernel_model(input, mode):
         flat3 = tf.contrib.layers.flatten(cnn3)
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
-
+        all_features = tf.layers.dropout(
+            all_features, 0.4,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
+        )
         result = tf.layers.dense(
             all_features, 200,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
