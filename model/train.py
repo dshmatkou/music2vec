@@ -25,6 +25,7 @@ def main(dataset, output_dir):
         config=tf.estimator.RunConfig(
             save_checkpoints_steps=50,
             model_dir='/tmp/music2vec_models',
+            keep_checkpoint_max=3,
         )
     )
 
