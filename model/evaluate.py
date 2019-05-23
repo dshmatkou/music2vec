@@ -11,6 +11,15 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
+def intersect_dicts(prediction, dataset_item):
+    result = {}
+    for item in dataset_item.keys():
+        if item in prediction:
+            result[item] = dataset_item[item]
+    result['vector'] = prediction['vector']
+    return result
+
+
 def vectorize_dataset(dataset_fn, estimator):
     dataset = [
         FeaturedRecord.unpack_str(buffer)
@@ -23,12 +32,14 @@ def vectorize_dataset(dataset_fn, estimator):
             shuffle=False
         )
     )
-    for item, prediction in zip(dataset, predictions):
-        for key in item:
-            if key not in prediction:
-                item.pop(key)
-        item['vector'] = prediction['vector']
-    return dataset
+    result_dataset = [
+        intersect_dicts(prediction, item)
+        for item, prediction in zip(dataset, predictions)
+    ]
+    del dataset
+    del features
+    del predictions
+    return result_dataset
 
 
 def extract_multilabel(label):
