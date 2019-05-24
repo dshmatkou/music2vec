@@ -203,16 +203,16 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 
 METRICS = {
     # label, metric
-    # 'genres_all': build_simple_multilabel_loss,
+    'genres_all': build_simple_multilabel_loss,
     'genres_top': build_simple_multilabel_loss,
-    # 'release_decade': build_simple_cat_loss,
+    'release_decade': build_simple_cat_loss,
     # 'acousticness': build_simple_logit_loss,
     # 'danceability': build_simple_logit_loss,
     # 'energy': build_simple_logit_loss,
     # 'instrumentalness': build_simple_logit_loss,
     # 'speechiness': build_simple_logit_loss,
     # 'happiness': build_simple_logit_loss,
-    # 'artist_location': build_simple_cat_loss,
+    'artist_location': build_simple_cat_loss,
 }
 
 
@@ -262,10 +262,10 @@ def model_fn(features, labels, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
                 optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.02,
+                    learning_rate=0.1,
                     epsilon=0.1,
                 )
-                optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 1)
+                optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 2)
                 training_ops = [
                     optimizer.minimize(
                         loss=loss,
