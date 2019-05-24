@@ -189,6 +189,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         loss = tf.losses.softmax_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
+            weight=0.15,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
@@ -262,7 +263,7 @@ def model_fn(features, labels, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
                 optimizer = tf.train.AdamOptimizer(
-                    learning_rate=0.1,
+                    learning_rate=0.5,
                     epsilon=0.1,
                 )
                 optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 2)
