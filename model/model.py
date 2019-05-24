@@ -189,7 +189,7 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         loss = tf.losses.softmax_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
-            weight=0.15,
+            weights=0.15,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
