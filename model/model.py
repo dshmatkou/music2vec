@@ -268,14 +268,19 @@ def model_fn(features, labels, mode):
                     epsilon=0.1,
                 )
                 optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 2)
-                training_ops = [
-                    optimizer.minimize(
-                        loss=loss,
-                        global_step=tf.train.get_global_step(),
-                        aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
-                    )
-                    for loss in losses
-                ]
+                train_op = optimizer.minimize(
+                    loss=total_loss,
+                    global_step=tf.train.get_global_step(),
+                    aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
+                )
+                # training_ops = [
+                #     optimizer.minimize(
+                #         loss=loss,
+                #         global_step=tf.train.get_global_step(),
+                #         aggregation_method=tf.AggregationMethod.EXPERIMENTAL_TREE,
+                #     )
+                #     for loss in losses
+                # ]
 
             summary_hook = tf.train.SummarySaverHook(
                 1,
@@ -285,7 +290,7 @@ def model_fn(features, labels, mode):
             return tf.estimator.EstimatorSpec(
                 mode=mode,
                 loss=total_loss,
-                train_op=tf.group(*training_ops),
+                train_op=train_op,
                 training_hooks=[summary_hook],
             )
 
