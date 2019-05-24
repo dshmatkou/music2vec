@@ -153,6 +153,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         loss = tf.losses.mean_squared_error(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(pred, 1e-3, 0.999),
+            weights=5,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
