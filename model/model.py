@@ -150,7 +150,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.losses.mean_squared_error(
+        loss = tf.losses.absolute_difference(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(pred, 1e-3, 0.999),
             weights=5,
