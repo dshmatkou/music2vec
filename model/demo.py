@@ -22,6 +22,7 @@ def extract_genres(vector, genres):
     result = [
         (genre_title, vector[genre_id])
         for genre_id, genre_title in genres
+        if len(vector) > genre_id
     ]
     result = sorted(result, key=lambda x: x[1])
     return result
