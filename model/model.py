@@ -156,7 +156,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.mean_absolute_error(
+        acc = tf.metrics.accuracy(
             labels=label,
             predictions=pred,
         )
@@ -208,10 +208,10 @@ METRICS = {
     # 'genres_top': build_simple_multilabel_loss,
     # 'release_decade': build_simple_cat_loss,
     'acousticness': build_simple_logit_loss,
-    'danceability': build_simple_logit_loss,
+    # 'danceability': build_simple_logit_loss,
     'energy': build_simple_logit_loss,
     'instrumentalness': build_simple_logit_loss,
-    # 'speechiness': build_simple_logit_loss,
+    'speechiness': build_simple_logit_loss,
     # 'happiness': build_simple_logit_loss,
     # 'artist_location': build_simple_cat_loss,
 }
