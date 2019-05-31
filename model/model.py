@@ -157,7 +157,7 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
+        acc = tf.metrics.mean_absolute_error(
             labels=label,
             predictions=pred,
         )
