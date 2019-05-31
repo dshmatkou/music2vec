@@ -1,7 +1,5 @@
 import csv
 import numpy as np
-import tensorflow as tf
-from model.model import model_fn
 from preprocess_dataset.audio.processors import get_processor
 from tensorflow.contrib import predictor
 
@@ -19,6 +17,7 @@ def load_genres(genres_metadata_fn):
 
 
 def extract_genres(vector, genres):
+    vector = np.array(vector).tolist()[0]
     result = [
         (genre_title, vector[genre_id])
         for genre_id, genre_title in genres
