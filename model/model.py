@@ -212,7 +212,7 @@ METRICS = {
     'danceability': build_simple_logit_loss,
     'energy': build_simple_logit_loss,
     'instrumentalness': build_simple_logit_loss,
-    'speechiness': build_simple_logit_loss,
+    # 'speechiness': build_simple_logit_loss,
     # 'happiness': build_simple_logit_loss,
     # 'artist_location': build_simple_cat_loss,
 }
