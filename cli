@@ -4,6 +4,7 @@ import click
 from preprocess_dataset.process_dataset import main as pds
 from model.evaluate import evaluate
 from model.train import main as tr
+from model.demo import demonstrate
 
 
 @click.group()
@@ -47,6 +48,14 @@ def train(dataset, output):
 @click.option('-d', '--dataset', help='Path to dataset')
 def train(dataset):
     evaluate(dataset)
+
+
+@cli.command('demo', help='Demo of m2v classifier')
+@click.option('-f', '--music-file', help='.mp3')
+@click.option('-m', '--model-path')
+@click.option('-g', '--genres-metadata-file')
+def demo(music_file, model_path, genres_metadata_file):
+    demonstrate(music_file, model_path, genres_metadata_file)
 
 
 if __name__ == '__main__':
