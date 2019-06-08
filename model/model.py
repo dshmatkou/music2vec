@@ -134,14 +134,14 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         units = label.shape[1]
 
     with tf.variable_scope(label_name):
-        # pred = tf.layers.dense(
-        #     inputs=kernel_model,
-        #     units=250,
-        #     kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
-        #     activation=tf.nn.relu,
-        # )
         pred = tf.layers.dense(
             inputs=kernel_model,
+            units=250,
+            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
+            activation=tf.nn.relu,
+        )
+        pred = tf.layers.dense(
+            inputs=pred,
             units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
         )
@@ -150,9 +150,10 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
-        loss = tf.losses.absolute_difference(
-            tf.clip_by_value(label, 1e-3, 0.999),
-            tf.clip_by_value(pred, 1e-3, 0.999),
+        loss = tf.losses.huber_loss(
+            label,
+            pred,
+            reduction=tf.losses.Reduction.SUM
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
@@ -206,9 +207,9 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 METRICS = {
     # label, metric
     # 'genres_all': build_simple_multilabel_loss,
-    'genres_top': build_simple_multilabel_loss,
+    # 'genres_top': build_simple_multilabel_loss,
     # 'release_decade': build_simple_cat_loss,
-    # 'acousticness': build_simple_logit_loss,
+    'acousticness': build_simple_logit_loss,
     # 'danceability': build_simple_logit_loss,
     # 'energy': build_simple_logit_loss,
     # 'instrumentalness': build_simple_logit_loss,
