@@ -161,8 +161,15 @@ def build_simple_logit_loss(kernel_model, label, label_name):
             labels=label,
             predictions=pred,
         )
+        mse = tf.metrics.mean_squared_error(
+            labels=label,
+            predictions=pred,
+        )
+
         scalar_acc = tf.reduce_mean(acc)
-        summaries.append(tf.summary.scalar('accuracy', scalar_acc))
+        scalar_mse = tf.reduce_mean(mse)
+        summaries.append(tf.summary.scalar('mean_absolute_error', scalar_acc))
+        summaries.append(tf.summary.scalar('mean_squared_error', scalar_mse))
     return pred, loss, acc, summaries
 
 
