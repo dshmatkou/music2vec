@@ -272,7 +272,7 @@ def model_fn(features, labels, mode):
         if mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope('optimizer'):
                 optimizer = tf.train.GradientDescentOptimizer(
-                    learning_rate=0.01,
+                    learning_rate=0.005,
                 )
                 optimizer = tf.contrib.estimator.clip_gradients_by_norm(optimizer, 2)
                 training_ops = [
