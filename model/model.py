@@ -116,7 +116,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
+        acc = tf.metrics.precision(
             labels=label,
             predictions=tf.to_float(tf.greater(pred, 0.5)),
         )
@@ -203,8 +203,8 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         summaries.append(tf.summary.scalar('loss', loss))
 
         acc = tf.metrics.accuracy(
-            labels=label,
-            predictions=tf.to_float(tf.greater(pred, 0.5)),
+            labels=tf.argmax(label),
+            predictions=tf.argmax(pred),
         )
         scalar_acc = tf.reduce_mean(acc[0])
         summaries.append(tf.summary.scalar('accuracy', scalar_acc))
