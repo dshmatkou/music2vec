@@ -116,9 +116,9 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
+        acc, update_op = tf.metrics.accuracy(
             labels=label,
-            predictions=pred,
+            predictions=tf.to_float(tf.greater(pred, 0.7)),
         )
         scalar_acc = tf.reduce_mean(acc)
         summaries.append(tf.summary.scalar('accuracy', scalar_acc))
@@ -157,11 +157,11 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.mean_absolute_error(
+        acc, acc_update_op = tf.metrics.mean_absolute_error(
             labels=label,
             predictions=pred,
         )
-        mse = tf.metrics.mean_squared_error(
+        mse, acc_update_op = tf.metrics.mean_squared_error(
             labels=label,
             predictions=pred,
         )
@@ -202,9 +202,9 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
+        acc, update_op = tf.metrics.accuracy(
             labels=label,
-            predictions=pred,
+            predictions=tf.to_float(tf.greater(pred, 0.7)),
         )
         scalar_acc = tf.reduce_mean(acc)
         summaries.append(tf.summary.scalar('accuracy', scalar_acc))
@@ -214,9 +214,9 @@ def build_simple_cat_loss(kernel_model, label, label_name):
 METRICS = {
     # label, metric
     # 'genres_all': build_simple_multilabel_loss,
-    # 'genres_top': build_simple_multilabel_loss,
+    'genres_top': build_simple_multilabel_loss,
     # 'release_decade': build_simple_cat_loss,
-    'acousticness': build_simple_logit_loss,
+    # 'acousticness': build_simple_logit_loss,
     # 'danceability': build_simple_logit_loss,
     # 'energy': build_simple_logit_loss,
     # 'instrumentalness': build_simple_logit_loss,
