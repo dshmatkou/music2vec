@@ -116,11 +116,11 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc, update_op = tf.metrics.accuracy(
+        acc = tf.metrics.accuracy(
             labels=label,
-            predictions=tf.to_float(tf.greater(pred, 0.7)),
+            predictions=tf.to_float(tf.greater(pred, 0.5)),
         )
-        scalar_acc = tf.reduce_mean(acc)
+        scalar_acc = tf.reduce_mean(acc[0])
         summaries.append(tf.summary.scalar('accuracy', scalar_acc))
     return pred, loss, acc, summaries
 
@@ -157,20 +157,20 @@ def build_simple_logit_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc, acc_update_op = tf.metrics.mean_absolute_error(
+        acc = tf.metrics.mean_absolute_error(
             labels=label,
             predictions=pred,
         )
-        mse, acc_update_op = tf.metrics.mean_squared_error(
+        mse = tf.metrics.mean_squared_error(
             labels=label,
             predictions=pred,
         )
 
-        scalar_acc = tf.reduce_mean(acc)
-        scalar_mse = tf.reduce_mean(mse)
+        scalar_acc = tf.reduce_mean(acc[0])
+        scalar_mse = tf.reduce_mean(mse[0])
         summaries.append(tf.summary.scalar('mean_absolute_error', scalar_acc))
         summaries.append(tf.summary.scalar('mean_squared_error', scalar_mse))
-    return pred, loss, acc, summaries
+    return pred, loss, mse, summaries
 
 
 def build_simple_cat_loss(kernel_model, label, label_name):
@@ -202,11 +202,11 @@ def build_simple_cat_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc, update_op = tf.metrics.accuracy(
+        acc = tf.metrics.accuracy(
             labels=label,
-            predictions=tf.to_float(tf.greater(pred, 0.7)),
+            predictions=tf.to_float(tf.greater(pred, 0.5)),
         )
-        scalar_acc = tf.reduce_mean(acc)
+        scalar_acc = tf.reduce_mean(acc[0])
         summaries.append(tf.summary.scalar('accuracy', scalar_acc))
     return pred, loss, acc, summaries
 
