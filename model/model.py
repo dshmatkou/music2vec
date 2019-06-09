@@ -109,16 +109,20 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         if label is None:
             return pred, None, None, summaries
 
+        binary_predictions = tf.to_float(tf.greater(pred, 0.5))
+        weights = tf.abs(binary_predictions - label) + tf.constant(0.3)
+
         loss = tf.losses.sigmoid_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
             reduction=tf.losses.Reduction.SUM,
+            weights=weights,
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
         acc = tf.metrics.precision(
             labels=label,
-            predictions=tf.to_float(tf.greater(pred, 0.5)),
+            predictions=binary_predictions,
         )
         scalar_acc = tf.reduce_mean(acc[0])
         summaries.append(tf.summary.scalar('accuracy', scalar_acc))
