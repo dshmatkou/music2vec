@@ -190,7 +190,6 @@ def build_simple_cat_loss(kernel_model, label, label_name):
             inputs=kernel_model,
             units=units,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
-            activation=tf.nn.sigmoid,
         )
         pred = tf.nn.softmax(loss_value)
         summaries.append(tf.summary.tensor_summary('prediction', pred))
