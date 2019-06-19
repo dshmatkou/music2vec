@@ -22,6 +22,7 @@ def build_simple_cnn(input, kernel_size):
 # add activations
 def build_kernel_model(input, mode):
     input = tf.cast(input, tf.float32)
+    input = tf.layers.batch_normalization(input)
     with tf.variable_scope('kernel'):
         # tower [3, 3]
         cnn1 = build_simple_cnn(input, [1, 1])
