@@ -23,7 +23,7 @@ def main(dataset, output_dir):
     estimator = tf.estimator.Estimator(
         model_fn=model_fn,
         config=tf.estimator.RunConfig(
-            save_checkpoints_steps=50,
+            save_checkpoints_steps=10,
             model_dir='/tmp/music2vec_models',
             keep_checkpoint_max=3,
         )
@@ -38,7 +38,7 @@ def main(dataset, output_dir):
         logger.info('Train')
         estimator.train(
             input_fn=lambda: prepare_dataset(train_path),
-            steps=150,
+            steps=30,
         )
         logger.info('Test')
         e = estimator.evaluate(lambda: prepare_dataset(test_path))
