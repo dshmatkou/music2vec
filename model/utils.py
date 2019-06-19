@@ -11,10 +11,10 @@ def prepare_dataset(ds_path):
         ).map(
             FeaturedRecord.split_features_labels
         ).shuffle(
-            1000
+            2000
         ).prefetch(
-            100
+            300
         ).batch(
-            100
+            300
         )
         return dataset
