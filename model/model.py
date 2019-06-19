@@ -29,7 +29,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.3,
+            cnn1, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn1 = build_simple_cnn(cnn1, [3, 3])
@@ -37,7 +37,7 @@ def build_kernel_model(input, mode):
             cnn1, pool_size=[3, 3], strides=1,
         )
         cnn1 = tf.layers.dropout(
-            cnn1, 0.3,
+            cnn1, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -47,7 +47,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.3,
+            cnn2, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn2 = build_simple_cnn(cnn2, [5, 5])
@@ -55,7 +55,7 @@ def build_kernel_model(input, mode):
             cnn2, pool_size=[3, 3], strides=1,
         )
         cnn2 = tf.layers.dropout(
-            cnn2, 0.3,
+            cnn2, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -64,7 +64,7 @@ def build_kernel_model(input, mode):
             input, pool_size=[3, 3], strides=1
         )
         cnn3 = tf.layers.dropout(
-            cnn3, 0.3,
+            cnn3, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
         cnn3 = build_simple_cnn(cnn3, [1, 1])
@@ -72,7 +72,7 @@ def build_kernel_model(input, mode):
             cnn3, pool_size=[3, 3], strides=1,
         )
         cnn3 = tf.layers.dropout(
-            cnn3, 0.3,
+            cnn3, 0.4,
             training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
@@ -84,6 +84,10 @@ def build_kernel_model(input, mode):
         result = tf.layers.dense(
             all_features, 200,
             kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
+        )
+        result = tf.layers.dropout(
+            result, 0.4,
+            training=mode == tf.estimator.ModeKeys.TRAIN,
         )
 
     return result
@@ -120,7 +124,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         )
         summaries.append(tf.summary.scalar('loss', loss))
 
-        acc = tf.metrics.accuracy(
+        acc = tf.metrics.recall(
             labels=label,
             predictions=binary_predictions,
         )
