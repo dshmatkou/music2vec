@@ -117,7 +117,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         binary_predictions = tf.to_float(tf.greater(pred, 0.6))
         weights = tf.abs(binary_predictions - label) + tf.constant(0.001)
 
-        loss = tf.losses.absolute_difference(
+        loss = tf.losses.sigmoid_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
             # reduction=tf.losses.Reduction.SUM,
