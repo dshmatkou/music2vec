@@ -9,7 +9,7 @@ from model.utils import prepare_dataset
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
-EPOCHS = 10
+EPOCHS = 100
 
 
 def input_serving_fn():
