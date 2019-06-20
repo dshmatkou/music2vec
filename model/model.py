@@ -1,3 +1,4 @@
+import random
 import tensorflow as tf
 import logging
 from common.dataset_records import FeaturedRecord  # XXX: heavy link
@@ -15,6 +16,7 @@ def build_simple_cnn(input, kernel_size):
         kernel_size=kernel_size,
         padding='same',
         activation=tf.nn.relu,
+        kernel_initializer=tf.contrib.layers.xavier_initializer(seed=random.randrange(0, 10000)),
     )
 
 
@@ -82,7 +84,7 @@ def build_kernel_model(input, mode):
 
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
         result = tf.layers.dense(
-            all_features, 200,
+            all_features, 250,
         )
         result = tf.layers.dropout(
             result, 0.5,
