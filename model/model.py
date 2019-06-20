@@ -15,7 +15,6 @@ def build_simple_cnn(input, kernel_size):
         kernel_size=kernel_size,
         padding='same',
         activation=tf.nn.relu,
-        kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
     )
 
 
@@ -84,7 +83,6 @@ def build_kernel_model(input, mode):
         all_features = tf.concat([flat1, flat2, flat3], axis=1)
         result = tf.layers.dense(
             all_features, 200,
-            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123)
         )
         result = tf.layers.dropout(
             result, 0.5,
@@ -106,9 +104,8 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         loss_value = tf.layers.dense(
             inputs=kernel_model,
             units=units,
-            kernel_initializer=tf.contrib.layers.xavier_initializer(seed=123),
         )
-        pred = tf.nn.softmax(loss_value)
+        pred = tf.nn.sigmoid(loss_value)
         summaries.append(tf.summary.tensor_summary('prediction', pred))
 
         if label is None:
@@ -117,7 +114,7 @@ def build_simple_multilabel_loss(kernel_model, label, label_name):
         binary_predictions = tf.to_float(tf.greater(pred, 0.6))
         weights = tf.abs(binary_predictions - label) + tf.constant(0.001)
 
-        loss = tf.losses.softmax_cross_entropy(
+        loss = tf.losses.sigmoid_cross_entropy(
             tf.clip_by_value(label, 1e-3, 0.999),
             tf.clip_by_value(loss_value, 1e-3, 0.999),
             # reduction=tf.losses.Reduction.SUM,
