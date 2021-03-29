@@ -5,7 +5,7 @@ librosa==0.6.3
 numpy==1.16.1
 pandas==0.24.1
 protobuf==3.6.1
-Pygments==2.3.1
+Pygments==2.7.4
 python-dateutil==2.8.0
 pytz==2018.9
 scikit-learn==0.20.2
